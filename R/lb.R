@@ -7,7 +7,7 @@
 #'
 lb_catch <- function(con) {
   q <-
-    tbl_mar(mar, "afli.afli") %>%
+    tbl_mar(con, "afli.afli") %>%
     dplyr::select(visir,
                   sid = tegund,
                   catch = afli)
@@ -114,7 +114,7 @@ lb_mobile <- function(con) {
     # Oracle time is in days
     dplyr::mutate(t1 = date + (substr(on.bottom, 1, 2) * 60 + substr(on.bottom, 3, 4)) / (24 * 60),
                   t2 = date + (substr(on.bottom, 1, 2) * 60 + substr(on.bottom, 3, 4) + towtime) / (24 * 60)) %>%
-    select(-date)
+    dplyr::select(-date)
   return(q)
 }
 
@@ -134,7 +134,7 @@ lb_static <- function(con) {
     q %>%
     # get gid
     dplyr::left_join(tbl_mar(con, "afli.stofn") %>%
-                       select(visir, gid = veidarf),
+                       dplyr::select(visir, gid = veidarf),
                      by = "visir") %>%
     # NOTE: SHOULD NOT REALLY FILTER DATA HERE
     dplyr::filter(gid %in% c(1, 2, 3)) %>%

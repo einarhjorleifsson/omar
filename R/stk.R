@@ -164,14 +164,14 @@ stk_mobile_icelandic <- function(con, correct = FALSE, vidmatch = FALSE, classif
                        by = "vid")
     q <-
       q %>%
-      dplyr::mutate(bauja = ifelse(toupper(str_sub(globalid, 5, 9)) %in% c("_NET_", "_NET1", "_NET2", "_NET3", "_NET4"),
+      dplyr::mutate(bauja = ifelse(toupper(stringr::str_sub(globalid, 5, 9)) %in% c("_NET_", "_NET1", "_NET2", "_NET3", "_NET4"),
                                    "hi",
                                    NA)) %>%
       # NOTE Code for just finding numericals in the global string since below NOT 100 foolproof
-      dplyr::mutate(gid_temp = str_trim(globalid)) %>%
+      dplyr::mutate(gid_temp = stringr::str_trim(globalid)) %>%
       dplyr::mutate(mmsi = dplyr::case_when(!is.na(mmsi) ~ mmsi,
-                                            nchar(str_trim(gid_temp)) == 9 &
-                                              str_sub(gid_temp, 1, 1) %in% c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9") &
+                                            nchar(stringr::str_trim(gid_temp)) == 9 &
+                                              stringr::str_sub(gid_temp, 1, 1) %in% c("0", "1", "2", "3", "4", "5", "6", "7", "8", "9") &
                                               is.na(bauja) ~ gid_temp,
                                             TRUE ~ NA_character_)) %>%
       dplyr::select(-gid_temp)
@@ -184,8 +184,8 @@ stk_mobile_icelandic <- function(con, correct = FALSE, vidmatch = FALSE, classif
     
     q <-
       q %>%
-      dplyr::mutate(mmsi.mid = dplyr::case_when(as.integer(str_sub(mmsi, 1, 1)) %in% c("2", "3", "4", "5", "6", "7") ~ str_sub(mmsi, 1, 3),
-                                                str_sub(mmsi, 1, 2) %in% c("98", "99") ~ str_sub(mmsi, 3, 5),
+      dplyr::mutate(mmsi.mid = dplyr::case_when(as.integer(stringr::str_sub(mmsi, 1, 1)) %in% c("2", "3", "4", "5", "6", "7") ~ stringr::str_sub(mmsi, 1, 3),
+                                                str_sub(mmsi, 1, 2) %in% c("98", "99") ~ stringr::str_sub(mmsi, 3, 5),
                                                 TRUE ~ NA_character_))
     
     q <-
@@ -196,14 +196,14 @@ stk_mobile_icelandic <- function(con, correct = FALSE, vidmatch = FALSE, classif
     
     q <-
       q %>%
-      dplyr::mutate(class = dplyr::case_when(str_sub(mmsi, 1, 1) == "1" ~ "sar aircraft",
-                                             str_sub(mmsi, 1, 1) %in% c("2", "3", "4", "5", "6", "7") ~ "vessel",
-                                             str_sub(mmsi, 1, 1) == "8" ~ "handheld VHF transceiver",
-                                             str_sub(mmsi, 1, 2) == "99" ~ "bauja",
-                                             str_sub(mmsi, 1, 2) == "98" ~ "sibling craft",
-                                             str_sub(mmsi, 1, 3) == "970" ~ "sar transponders",
-                                             str_sub(mmsi, 1, 3) == "972" ~ "man overboard",
-                                             !is.na(mmsi.mid) & is.na(as.integer(str_sub(mmsi, 1, 2))) ~ "vessel",
+      dplyr::mutate(class = dplyr::case_when(stringr::str_sub(mmsi, 1, 1) == "1" ~ "sar aircraft",
+                                             stringr::str_sub(mmsi, 1, 1) %in% c("2", "3", "4", "5", "6", "7") ~ "vessel",
+                                             stringr::str_sub(mmsi, 1, 1) == "8" ~ "handheld VHF transceiver",
+                                             stringr::str_sub(mmsi, 1, 2) == "99" ~ "bauja",
+                                             stringr::str_sub(mmsi, 1, 2) == "98" ~ "sibling craft",
+                                             stringr::str_sub(mmsi, 1, 3) == "970" ~ "sar transponders",
+                                             stringr::str_sub(mmsi, 1, 3) == "972" ~ "man overboard",
+                                             !is.na(mmsi.mid) & is.na(as.integer(stringr::str_sub(mmsi, 1, 2))) ~ "vessel",
                                              localid_original %in% c("9999", "9998") |
                                                globalid %in% c("Surtseyja", "Straumnes", "Steinanes", "Haganes_K", "Eyri_Kvi_", "Bakkafjar",
                                                                "Laugardal", "BorgfjE P", "Gemlufall", "Sjokvi", "Straumduf", "Eyrarhlid",
@@ -228,9 +228,9 @@ stk_mobile_icelandic <- function(con, correct = FALSE, vidmatch = FALSE, classif
       q %>%
       dplyr::mutate(cs = ifelse(class == "vessel" | is.na(class), globalid, NA_character_),
                     cs = dplyr::case_when(cs == "THAE" & vid == 2549 ~ "TFAE",
-                                          str_sub(cs, 1, 4) == "TMP_" ~  NA_character_,
+                                          stringr::str_sub(cs, 1, 4) == "TMP_" ~  NA_character_,
                                           TRUE ~ cs),
-                    cs_prefix = str_sub(cs, 1, 2)) %>%
+                    cs_prefix = stringr::str_sub(cs, 1, 2)) %>%
       dplyr::left_join(vessel_csprefix(con) %>% dplyr::select(cs_prefix, cs_iso2 = iso2),
                        by = "cs_prefix")  %>%
       dplyr::mutate(cs = ifelse(!is.na(cs_iso2), cs, NA_character_))
@@ -241,7 +241,7 @@ stk_mobile_icelandic <- function(con, correct = FALSE, vidmatch = FALSE, classif
     #  mutate(vid = ifelse(!between(vid, 3700, 4999) & cs_iso2 != "IS", NA, vid))
     q <-
       q %>%
-      dplyr::mutate(vid.aux = ifelse(class == "bauja" & is.na(cs), str_sub(globalid, 1, 4), NA_character_)) %>%
+      dplyr::mutate(vid.aux = ifelse(class == "bauja" & is.na(cs), stringr::str_sub(globalid, 1, 4), NA_character_)) %>%
       dplyr::select(-c(bauja, mmsi.mid))
   }
   

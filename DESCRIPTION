@@ -17,4 +17,8 @@ Imports:
     DBI,
     dbplyr,
     dplyr,
-    magrittr
+    magrittr,
+    mar,
+    purrr,
+    ROracle,
+    stringr
