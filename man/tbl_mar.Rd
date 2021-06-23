@@ -2,18 +2,18 @@
 % Please edit documentation in R/connections.R
 \name{tbl_mar}
 \alias{tbl_mar}
-\title{Connection to MAR tables}
+\title{Connection to mar}
 \usage{
 tbl_mar(con, tbl)
 }
 \arguments{
-\item{con}{The connection}
+\item{con}{tenging við oraclegrunn}
 
-\item{tbl}{The name of the table (normally schema.table)}
+\item{tbl}{nafn oracle töflu}
 }
 \value{
-a query
+sql query and data
 }
 \description{
-Connection to MAR tables
+Connection to mar
 }

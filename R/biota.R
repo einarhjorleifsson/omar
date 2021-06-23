@@ -1,4 +1,4 @@
-qlen <- function(con) {
+bi_len <- function(con) {
   mar::les_lengd(con) %>% 
     dplyr::rename(id = synis_id,
                   sid = tegund_nr,
@@ -8,7 +8,7 @@ qlen <- function(con) {
                   age = aldur, 
                   n = fjoldi)
 }
-qage <- function(con) {
+bi_age <- function(con) {
   mar::les_aldur(con) %>% 
     dplyr::rename(id = synis_id,
                   sid = tegund_nr,
@@ -24,6 +24,6 @@ qage <- function(con) {
                   liver = lifur,
                   gonads = kynfaeri)
 }
-qmes <- function(con) {
+bi_mes <- function(con) {
   mar::tbl_mar(con, "biota.measure")
 }
