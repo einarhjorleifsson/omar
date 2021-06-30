@@ -16,12 +16,14 @@ lb_catch <- function(con) {
 
 #' Logbook base (stofn)
 #' 
-#' @param con
+#' @param con oracle connection
+#' @param correct_gear a boolean (default FALSE) checks for lookup-table for
+#' gear correction (adds variable "gidc" to the tibble)
 #'
 #' @return sql query and data
 #' @export
 #'
-lb_base <- function(con) {
+lb_base <- function(con, correct_gear = FALSE) {
   
   # This is currently in mar
   # tbl_mar(mar, "afli.stofn") %>%
@@ -62,6 +64,18 @@ lb_base <- function(con) {
                   distance = toglengd, # Derived measure
                   datel = ldags,       # Landing date
                   hidl = lhofn)        # Harbour id landings took place
+  
+  if(correct_gear) {
+    q <- 
+      q %>% 
+      dplyr::left_join(gid_correction(con) %>% 
+                         dplyr::select(visir, gidc),
+                       by = "visir") #%>% 
+      #dplyr::mutate(corrected = nvl(gid, FALSE, TRUE),
+      #              gid = nvl(gid, gid_original, gid))
+    
+    
+  }
   return(q)
 }
 

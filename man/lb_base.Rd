@@ -4,10 +4,13 @@
 \alias{lb_base}
 \title{Logbook base (stofn)}
 \usage{
-lb_base(con)
+lb_base(con, correct_gear = FALSE)
 }
 \arguments{
-\item{con}{}
+\item{con}{oracle connection}
+
+\item{correct_gear}{a boolean (default FALSE) checks for lookup-table for
+gear correction (adds variable "gidc" to the tibble)}
 }
 \value{
 sql query and data

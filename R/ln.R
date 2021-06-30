@@ -1,12 +1,44 @@
-#' Title
+#' landed catch (kvoti.lods_oslaegt)
 #'
 #' @param con oracle connection
-#' @param standardize Standardize (default TRUE) renames some field and then some but returns all variables
+#' @param standardize Standardize (default TRUE) renames some field and then 
+#' some but returns all variables
+#' 
+#' @export
+#'
+ln_catch <- function(con, standardize = TRUE) {
+  
+  q <- 
+    omar::tbl_mar(con, "kvoti.lods_oslaegt")
+  
+  if(standardize) {
+    q <-
+      q %>% 
+      dplyr::rename(vid = skip_nr,
+                    hid = hofn,
+                    ID = komunr,
+                    date = l_dags,
+                    sid = fteg,
+                    catch = magn_oslaegt,
+                    area = veidisvaedi,
+                    gid = veidarf)
+  }
+  
+  return(q)
+  
+}
+
+#' landed catch (fiskifelagid.vigtarskra66_81)
+#'
+#' @param con oracle connection
+#' @param standardize Standardize (default TRUE) renames some field and then
+#' some but returns all variables
 #'
 #' @return a query
 #' @export
 #'
-ln_vigtarskra <- function(con, standardize = TRUE) {
+ln_1966_1981 <- function(con, standardize = TRUE) {
+  
   q <- 
     tbl_mar(con,'fiskifelagid.vigtarskra66_81')
   
@@ -15,14 +47,47 @@ ln_vigtarskra <- function(con, standardize = TRUE) {
       q %>% 
       dplyr::mutate(catch = magn * reiknistudull) %>% 
       dplyr::select(year = artal,
-             month = manudur,
-             das = uthaldsdagar,
-             vid = skip_nr,
-             hid = vinnsluhofn,
-             gid = veidarfaeri,
-             sid = fteg,
-             catch,
-             dplyr::everything())
+                    month = manudur,
+                    das = uthaldsdagar,
+                    vid = skip_nr,
+                    hid = vinnsluhofn,
+                    gid = veidarfaeri,
+                    sid = fteg,
+                    catch,
+                    dplyr::everything())
+  }
+  
+  return(q)
+  
+}
+
+
+#' landed catch (fiskifelagid.landed_catch_pre94)
+#'
+#' @param con oracle connection
+#' @param standardize Standardize (default TRUE) renames some field and then
+#' some but returns all variables
+#'
+#' @return a query
+#' @export
+#'
+ln_1982_1993 <- function(con, standardize = TRUE) {
+  
+  q <- 
+    tbl_mar(con, "fiskifelagid.landed_catch_pre94") 
+  
+  if(standardize) {
+    
+    q <- 
+      q %>% 
+    dplyr::rename(gid = veidarfaeri,
+                  vid = skip_nr,
+                  sid = fteg,
+                  year = ar,
+                  month = man,
+                  hid = hofn,
+                  catch = magn_oslaegt,
+                  area = veidisvaedi) 
   }
   
   return(q)
