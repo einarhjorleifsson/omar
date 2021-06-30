@@ -92,7 +92,7 @@ vid_history <- function(con) {
     dplyr::rename(vid = skip_nr, hist = saga_nr, t1 = i_gildi, t2 = ur_gildi,
                   uid = einkst, code = flokkur) %>%
     dplyr::left_join(tbl_mar(con, "kvoti.utg_fl") %>%
-                       select(code = flokkur, flokkur = heiti)) %>%
+                       dplyr::select(code = flokkur, flokkur = heiti)) %>%
     dplyr::select(-c(einknr, snn:sbn)) %>%
     dplyr::arrange(vid, hist) %>%
     dplyr::select(vid:code, flokkur, dplyr::everything())

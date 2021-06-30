@@ -2,18 +2,18 @@
 % Please edit documentation in R/connections.R
 \name{connect_mar}
 \alias{connect_mar}
-\title{Title}
+\title{Connection}
 \usage{
 connect_mar(dbname = "sjor", ...)
 }
 \arguments{
-\item{dbname}{}
+\item{dbname}{database name (default is sjor)}
 
-\item{...}{}
+\item{...}{additional argument to pass to dbConnect}
 }
 \value{
-
+a connection
 }
 \description{
-Title
+Connection
 }

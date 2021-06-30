@@ -7,7 +7,7 @@
 lb_catch(con)
 }
 \arguments{
-\item{con}{}
+\item{con}{oracle connection}
 }
 \value{
 sql query and data

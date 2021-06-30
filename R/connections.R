@@ -1,11 +1,10 @@
 #' Connection to mar
 #'
-#' @name tbl_mar
 #'
-#' @param con tenging við oraclegrunn
-#' @param tbl nafn oracle töflu
+#' @param con oracle connection
+#' @param tbl a string specifying schema.table
 #'
-#' @return sql query and data
+#' @return q query
 #' @export
 #'
 
@@ -18,12 +17,12 @@ tbl_mar <- function(con, tbl) {
 }
 
 
-#' Title
+#' Connection
 #'
-#' @param dbname 
-#' @param ... 
+#' @param dbname database name (default is sjor)
+#' @param ... additional argument to pass to dbConnect
 #'
-#' @return
+#' @return a connection
 #' @export
 #'
 connect_mar <- function (dbname = "sjor", ...) 

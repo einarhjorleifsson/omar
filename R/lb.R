@@ -1,6 +1,6 @@
 #' Logbook catch by species
 #'
-#' @param con
+#' @param con oracle connection
 #'
 #' @return sql query and data
 #' @export

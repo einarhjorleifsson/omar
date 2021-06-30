@@ -7,12 +7,12 @@
 tbl_mar(con, tbl)
 }
 \arguments{
-\item{con}{tenging við oraclegrunn}
+\item{con}{oracle connection}
 
-\item{tbl}{nafn oracle töflu}
+\item{tbl}{a string specifying schema.table}
 }
 \value{
-sql query and data
+q query
 }
 \description{
 Connection to mar
