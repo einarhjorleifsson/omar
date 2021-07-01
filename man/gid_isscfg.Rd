@@ -2,7 +2,7 @@
 % Please edit documentation in R/gid.R
 \name{gid_isscfg}
 \alias{gid_isscfg}
-\title{Orri gear with isscfg}
+\title{ISSCFG codes}
 \usage{
 gid_isscfg(con)
 }
@@ -13,5 +13,5 @@ gid_isscfg(con)
 A query
 }
 \description{
-Orri gear with isscfg
+International Standard Statistical Classification of Fishing Gear (ISSCFG), see http://www.fao.org/fishery/docs/DOCUMENT/cwp/handbook/annex/AnnexM2fishinggear.pdf
 }
