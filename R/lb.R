@@ -143,7 +143,7 @@ lb_mobile <- function(con, correct_gear = FALSE) {
     # Oracle time is in days
     dplyr::mutate(t1 = date + (substr(on.bottom, 1, 2) * 60 + substr(on.bottom, 3, 4)) / (24 * 60),
                   t2 = date + (substr(on.bottom, 1, 2) * 60 + substr(on.bottom, 3, 4) + towtime) / (24 * 60)) %>% 
-    dplyr::select(visir, gid, year:hid, 
+    dplyr::select(visir, vid, gid, year:hid, 
                   towtime,                     # in minutes
                   effort,
                   effort_unit,
@@ -157,6 +157,8 @@ lb_mobile <- function(con, correct_gear = FALSE) {
                   tempb2 = botnhiti_lok,
                   temps1 = uppsj_hiti,         # surface temperature
                   temps2 = uppsj_hiti_lok,
+                  t1, 
+                  t2,
                   on.bottom,
                   dplyr::everything())
   
@@ -211,7 +213,7 @@ lb_static <- function(con, correct_gear = FALSE) {
                   effort_unit = dplyr::case_when(gid2 == 1 ~ "hooks",
                                                  gid2 == 2 ~ "netnights",
                                                  gid2 == 3 ~ "hookours")) %>%
-    dplyr::select(visir, gid, year:hid,
+    dplyr::select(visir, vid, gid, year:hid,
                   effort,
                   effort_unit,
                   mesh = moskvi,           # gillnets
@@ -220,12 +222,12 @@ lb_static <- function(con, correct_gear = FALSE) {
                   bait = beita,
                   tempb1 = botnhiti,       # bottom temperature
                   temps1 = uppsjavarhiti,  # surface temperature
-                  # check what fj_kroka really is, looks like it is
-                  # a "new" variable related to longline fishing
-                  fj_kroka,
                   t0 = logn_hefst,         # time setting starts
                   t1 = drattur_hefst,      # time gear hauling starts
                   t2 = drattur_lykur,      # time gear hauling ends
+                  # check what fj_kroka really is, looks like it is
+                  # a "new" variable related to longline fishing
+                  fj_kroka,
                   dplyr::everything())
   
   return(q)
