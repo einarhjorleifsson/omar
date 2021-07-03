@@ -4,13 +4,16 @@
 \alias{lb_mobile}
 \title{Logbook mobile (active) gear}
 \usage{
-lb_mobile(con)
+lb_mobile(con, correct_gear = FALSE)
 }
 \arguments{
-\item{con}{Oracle connection}
+\item{con}{oracle connection}
+
+\item{correct_gear}{a boolean (default FALSE) checks for lookup-table for
+gear correction (adds variable "gidc" to the tibble)}
 }
 \value{
-A sql tibble
+a sql tibble
 }
 \description{
 Logbook mobile (active) gear

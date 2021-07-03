@@ -14,6 +14,35 @@ lb_catch <- function(con) {
   return(q)
 }
 
+lb_base0 <- function(con) {
+  
+  mar::afli_stofn(con) %>%
+    #dplyr::mutate(lon = ifelse(is.na(lengd_lok) | lengd_lok == 0, lengd, (lengd + lengd_lok) / 2),
+    #              lat = ifelse(is.na(breidd_lok) | breidd_lok == 0, breidd, (breidd + breidd_lok) / 2)) %>% 
+    dplyr::select(visir,
+                  vid = skipnr,
+                  gid = veidarf,
+                  year = ar,
+                  month = man,
+                  date = vedags,
+                  lon = lengd,
+                  lat = breidd,
+                  lon2 = lengd_lok,
+                  lat2 = breidd_lok,
+                  sq = reitur,        # Local statistical rectange (same resolution as ICES)
+                  ssq = smareitur,    # The quarter within a rectangle. NOTE: It is derived if NA
+                  z1 = dypi,          # depth
+                  z2 = dypi_lok,
+                  winddirection = vindatt,
+                  beaufort = vindstig,
+                  m_sec = m_sek,       # Meters per second??
+                  distance = toglengd, # Derived measure
+                  datel = ldags,       # Landing date
+                  hid = lhofn,        # Harbour id landings took place
+                  dplyr::everything())
+  
+}
+
 #' Logbook base (stofn)
 #' 
 #' @param con oracle connection
@@ -25,90 +54,96 @@ lb_catch <- function(con) {
 #'
 lb_base <- function(con, correct_gear = FALSE) {
   
-  # This is currently in mar
-  # tbl_mar(mar, "afli.stofn") %>%
-  #   dplyr::mutate(ar = to_number(to_char(vedags, "YYYY")),
-  #                 man = to_number(to_char(vedags, "MM")),
-  #                 lengd = -lengd * 100,
-  #                 breidd = breidd * 100,
-  #                 lengd_lok = -lengd_lok * 100,
-  #                 breidd_lok = breidd_lok * 100) %>%
-  #   geoconvert(col.names = c("lengd", "breidd", "lengd_lok", "breidd_lok")) %>%
-  #   dplyr::mutate(reitur = nvl(reitur, d2r(breidd, lengd)),
-  #                 smareitur = nvl(nvl(smareitur, d2sr(breidd, lengd) - d2r(breidd, lengd) * 10), 1)) %>%
-  #   dplyr::left_join(tbl_mar(mar, "fiskar.reitir"), by = c("reitur", "smareitur")) %>%
-  #   dplyr::mutate(lengd = nvl(lengd, lon),
-  #                 breidd = nvl(breidd, lat)) %>%
-  #   dplyr::mutate(toglengd = arcdist(breidd, lengd, breidd_lok, lengd_lok)) %>%
-  #   dplyr::select(-c(lat, lon))
-  
   q <-
-    mar::afli_stofn(con) %>%
-    dplyr::select(visir,
-                  vid = skipnr,
-                  gid = veidarf,
-                  year = ar,
-                  month = man,
-                  date = vedags,
-                  lat1 = breidd,
-                  lon1 = lengd,
-                  lat2 = breidd_lok,
-                  lon2 = lengd_lok,
-                  sq = reitur,        # Local statistical rectange (same resolution as ICES)
-                  ssq = smareitur,    # The quarter within a rectangle. NOTE: It is derived if NA
-                  z1 = dypi,          # depth
-                  z2 = dypi_lok,
-                  winddirection = vindatt,
-                  beaufort = vindstig,
-                  m_sec = m_sek,       # Meters per second??
-                  distance = toglengd, # Derived measure
-                  datel = ldags,       # Landing date
-                  hidl = lhofn)        # Harbour id landings took place
+    lb_base0(con)
   
   if(correct_gear) {
     q <- 
       q %>% 
       dplyr::left_join(gid_correction(con) %>% 
                          dplyr::select(visir, gidc),
-                       by = "visir") #%>% 
-      #dplyr::mutate(corrected = nvl(gid, FALSE, TRUE),
-      #              gid = nvl(gid, gid_original, gid))
-    
-    
+                       by = "visir") %>% 
+      dplyr::rename(gid_old = gid,
+                    gid = gidc) %>% 
+      # if gear correction not yet made in the oracle lookup table
+      dplyr::mutate(gid = ifelse(is.na(gid), gid_old, gid)) %>% 
+      dplyr::left_join(gid_orri_plus(con) %>%
+                         dplyr::select(gid, gid2),
+                       by = "gid")
+  } else {
+    q <- 
+      q %>% 
+      dplyr::left_join(gid_orri_plus(con) %>%
+                         dplyr::select(gid, gid2),
+                       by = "gid")
   }
+  
+  q <- 
+    q %>% 
+    dplyr::select(visir, gid, year:hid,
+                  dplyr::everything())
+  
+  
   return(q)
 }
 
 
 #' Logbook mobile (active) gear
 #'
-#' @param con Oracle connection
+#' @param con oracle connection
+#' @param correct_gear a boolean (default FALSE) checks for lookup-table for
+#' gear correction (adds variable "gidc" to the tibble)
 #'
-#' @return A sql tibble
+#' @return a sql tibble
 #' @export
 
-lb_mobile <- function(con) {
+lb_mobile <- function(con, correct_gear = FALSE) {
+  
+  
+  q <- 
+    lb_base0(con) %>% 
+    dplyr::inner_join(tbl_mar(con, "afli.toga"),
+                      by = "visir")
+  
+  if(correct_gear) {
+    q <- 
+      q %>% 
+      dplyr::left_join(gid_correction(con) %>% 
+                         dplyr::select(visir, gidc),
+                       by = "visir") %>% 
+      dplyr::rename(gid_old = gid,
+                    gid = gidc) %>% 
+      # if gear correction not yet made in the oracle lookup table
+      dplyr::mutate(gid = ifelse(is.na(gid), gid_old, gid)) %>% 
+      dplyr::left_join(gid_orri_plus(con) %>%
+                         dplyr::select(gid, gid2),
+                       by = "gid")
+  } else {
+    q <- 
+      q %>% 
+      dplyr::left_join(gid_orri_plus(con) %>%
+                         dplyr::select(gid, gid2),
+                       by = "gid")
+  }
   
   q <-
-    mar::tbl_mar(con, "afli.toga")
-  
-  q <-
-    q %>%
-    # get date of fishing (note: may also need gid)
-    dplyr::left_join(tbl_mar(con, "afli.stofn") %>%
-                       dplyr::select(visir, date = vedags, gid = veidarf),
-                     by = "visir") %>%
-    dplyr::rename(towtime = togtimi) %>%
-    dplyr::mutate(effort = dplyr::case_when(gid %in% c(6, 7, 9, 14, 15, 38, 40) ~ towtime / 60,
+    q %>% 
+    dplyr::rename(towtime = togtimi,
+                  on.bottom = ibotni) %>%
+    dplyr::mutate(effort = dplyr::case_when(gid2 %in% c(6, 7, 15) ~ towtime / 60,
                                             # for seine and traps use setting as effort
-                                            gid %in% c(5, 18, 39, 42) ~ 1,
+                                            gid2 %in% c(5, 17) ~ 1,
                                             TRUE ~ NA_real_),
-                  effort_unit = dplyr::case_when(gid %in% c(6, 7, 9, 14, 15, 38, 40) ~ "hours towed",
+                  effort_unit = dplyr::case_when(gid2 %in% c(6, 7, 9, 14, 15, 38, 40) ~ "hours towed",
                                                  # for seine just use the setting
-                                                 gid %in% c(5, 18, 39, 42) ~ "setting",
+                                                 gid2 %in% c(5, 17) ~ "setting",
                                                  TRUE ~ NA_character_)) %>%
-    dplyr::select(visir,
-                  date,
+    dplyr::mutate(on.bottom = lpad(on.bottom, 4, "0")) %>%
+    # vedags + (substr(lpad(ibotni,4,'0'),1,2)*60+substr(lpad(ibotni,4,'0'),3,2))/24/60 t1
+    # Oracle time is in days
+    dplyr::mutate(t1 = date + (substr(on.bottom, 1, 2) * 60 + substr(on.bottom, 3, 4)) / (24 * 60),
+                  t2 = date + (substr(on.bottom, 1, 2) * 60 + substr(on.bottom, 3, 4) + towtime) / (24 * 60)) %>% 
+    dplyr::select(visir, gid, year:hid, 
                   towtime,                     # in minutes
                   effort,
                   effort_unit,
@@ -122,50 +157,61 @@ lb_mobile <- function(con) {
                   tempb2 = botnhiti_lok,
                   temps1 = uppsj_hiti,         # surface temperature
                   temps2 = uppsj_hiti_lok,
-                  on.bottom = ibotni) %>%
-    dplyr::mutate(on.bottom = lpad(on.bottom, 4, "0")) %>%
-    # vedags + (substr(lpad(ibotni,4,'0'),1,2)*60+substr(lpad(ibotni,4,'0'),3,2))/24/60 t1
-    # Oracle time is in days
-    dplyr::mutate(t1 = date + (substr(on.bottom, 1, 2) * 60 + substr(on.bottom, 3, 4)) / (24 * 60),
-                  t2 = date + (substr(on.bottom, 1, 2) * 60 + substr(on.bottom, 3, 4) + towtime) / (24 * 60)) %>%
-    dplyr::select(-date)
+                  on.bottom,
+                  dplyr::everything())
+  
   return(q)
 }
 
 #' Logbook static (passsive) gear
 #'
 #' @param con Oracle connection
-#'
+#' @param con oracle connection
+#' @param correct_gear a boolean (default FALSE) checks for lookup-table for
+#' gear correction (adds variable "gidc" to the tibble)
+#' 
 #' @return A sql tibble
 #' @export
 #' 
-lb_static <- function(con) {
+lb_static <- function(con, correct_gear = FALSE) {
+  
+  q <- 
+    lb_base0(con) %>% 
+    dplyr::inner_join(tbl_mar(con, "afli.lineha"),
+               by = "visir")
+  
+  if(correct_gear) {
+    q <- 
+      q %>% 
+      dplyr::left_join(gid_correction(con) %>% 
+                         dplyr::select(visir, gidc),
+                       by = "visir") %>% 
+      dplyr::rename(gid_old = gid,
+                    gid = gidc) %>% 
+      # if gear correction not yet made in the oracle lookup table
+      dplyr::mutate(gid = ifelse(is.na(gid), gid_old, gid)) %>% 
+      dplyr::left_join(gid_orri_plus(con) %>%
+                         dplyr::select(gid, gid2),
+                       by = "gid")
+  } else {
+    q <- 
+      q %>% 
+      dplyr::left_join(gid_orri_plus(con) %>%
+                         dplyr::select(gid, gid2),
+                       by = "gid")
+  }
   
   q <-
-    mar::afli_lineha(con)
-  
-  q <-
-    q %>%
-    # get gid
-    dplyr::left_join(tbl_mar(con, "afli.stofn") %>%
-                       dplyr::select(visir, gid = veidarf),
-                     by = "visir") %>%
-    # NOTE: SHOULD NOT REALLY FILTER DATA HERE
-    dplyr::filter(gid %in% c(1, 2, 3)) %>%
-    # Question really how to define effort, below is one way - each gear having a
-    #  different unit of measure
-    # number of longline hooks
-    #   question if (soak)time should be added to the effort variable for gid == 1
-    #   this may though be difficult to quantify
-    dplyr::mutate(effort = dplyr::case_when(gid == 1 ~ as.numeric(onglar * bjod),
+    q %>% 
+    dplyr::mutate(effort = dplyr::case_when(gid2 == 1 ~ as.numeric(onglar * bjod),
                                             # netnights - the old measure used in iceland
-                                            gid == 2 ~ as.numeric(dregin * naetur),
+                                            gid2 == 2 ~ as.numeric(dregin * naetur),
                                             # jigger hookhours
-                                            gid == 3 ~ as.numeric(faeri * klst)),
-                  effort_unit = dplyr::case_when(gid == 1 ~ "hooks",
-                                                 gid == 2 ~ "netnights",
-                                                 gid == 3 ~ "hookours")) %>%
-    dplyr::select(visir,
+                                            gid2 == 3 ~ as.numeric(faeri * klst)),
+                  effort_unit = dplyr::case_when(gid2 == 1 ~ "hooks",
+                                                 gid2 == 2 ~ "netnights",
+                                                 gid2 == 3 ~ "hookours")) %>%
+    dplyr::select(visir, gid, year:hid,
                   effort,
                   effort_unit,
                   mesh = moskvi,           # gillnets
@@ -179,7 +225,8 @@ lb_static <- function(con) {
                   fj_kroka,
                   t0 = logn_hefst,         # time setting starts
                   t1 = drattur_hefst,      # time gear hauling starts
-                  t2 = drattur_lykur)      # time gear hauling ends
+                  t2 = drattur_lykur,      # time gear hauling ends
+                  dplyr::everything())
   
   return(q)
   
