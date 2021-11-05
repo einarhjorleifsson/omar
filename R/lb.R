@@ -17,8 +17,6 @@ lb_catch <- function(con) {
 lb_base0 <- function(con) {
   
   mar::afli_stofn(con) %>%
-    #dplyr::mutate(lon = ifelse(is.na(lengd_lok) | lengd_lok == 0, lengd, (lengd + lengd_lok) / 2),
-    #              lat = ifelse(is.na(breidd_lok) | breidd_lok == 0, breidd, (breidd + breidd_lok) / 2)) %>% 
     dplyr::select(visir,
                   vid = skipnr,
                   gid = veidarf,

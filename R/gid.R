@@ -1,6 +1,8 @@
 #' ISSCFG codes
 #'
-#' @description International Standard Statistical Classification of Fishing Gear (ISSCFG), see http://www.fao.org/fishery/docs/DOCUMENT/cwp/handbook/annex/AnnexM2fishinggear.pdf
+#' @description International Standard Statistical Classification of Fishing Gear (ISSCFG), 
+#' see http://www.fao.org/fishery/docs/DOCUMENT/cwp/handbook/annex/AnnexM2fishinggear.pdf and
+#' https://www.fao.org/documents/card/en/c/cb4966en
 #' 
 #' @param con oracle connection
 #'
@@ -13,7 +15,9 @@ gid_isscfg <- function(con) {
 
 #' ISSCFG category table
 #'
-#' @description International Standard Statistical Classification of Fishing Gear (ISSCFG), see http://www.fao.org/fishery/docs/DOCUMENT/cwp/handbook/annex/AnnexM2fishinggear.pdf
+#' @description International Standard Statistical Classification of Fishing Gear (ISSCFG), 
+#' see http://www.fao.org/fishery/docs/DOCUMENT/cwp/handbook/annex/AnnexM2fishinggear.pdf and
+#' https://www.fao.org/documents/card/en/c/cb4966en
 #' 
 #' @param con oracle connection
 #'

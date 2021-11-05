@@ -25,8 +25,7 @@ stk_trail <- function(con, year) {
   
   q %>%
     dplyr::select(mid = mobileid,
-                  time = recdate,
-                  postime = posdate,
+                  time = posdate,
                   lon, lat, speed, heading,
                   hid = harborid,
                   io = in_out_of_harbor)
@@ -64,7 +63,7 @@ stk_mobile_icelandic <- function(con, correct = FALSE, vidmatch = FALSE, classif
       #
       dplyr::mutate(localid = dplyr::case_when(mid == 102869 ~ "6155",    # 2021-04-20: Hafró
                                                mid == 135587 ~ "2957",    # 2021-04-20: Páll Jónsson, nýtt skip 2020
-                                               mid == 101065 ~ "1612",    # 2021-04-20: Hallgrímur
+                                               mid == 101065 ~ "1612",    # 2021-04-20: Hallgrímur: NOTE: THIS MID USED BEFORE
                                                mid == 101075 ~ "256",     # 2021-04-20: Kristrún II
                                                mid == 103067 ~ "962",     # 2021-04-20: Óskar
                                                mid == 103934 ~ "2962",    # 2021-04-20: Vörður, nýtt skip 2019
@@ -158,7 +157,7 @@ stk_mobile_icelandic <- function(con, correct = FALSE, vidmatch = FALSE, classif
     
     q <-
       q %>%
-      dplyr::left_join(vessel_mmsi(con) %>%
+      dplyr::left_join(vid_mmsi(con) %>%
                          dplyr::select(vid, mmsi) %>%
                          dplyr::filter(!is.na(vid)),
                        by = "vid")

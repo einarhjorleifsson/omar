@@ -1,3 +1,35 @@
+#' landings (kvoti.lods_londun)
+#'
+#' @param con oracle connection
+#' @param standardize Standardize (default TRUE) renames some field and then 
+#' some but returns all variables
+#' 
+#' @export
+#'
+ln_landing <- function(con, standardize = TRUE) {
+  
+  q <- 
+    omar::tbl_mar(con, "kvoti.lods_londun")
+  
+  if(standardize) {
+    q <-
+      q %>% 
+      dplyr::select(vid = skip_nr,
+                    hid = hofn,
+                    ID = komunr,
+                    date = l_dags,
+                    gid = veidarf,
+                    selj,
+                    stada,
+                    linu_ivilnun) %>% 
+      dplyr::mutate(year = year(date))
+  }
+  
+  return(q)
+  
+}
+
+
 #' landed catch (kvoti.lods_oslaegt)
 #'
 #' @param con oracle connection
@@ -21,7 +53,8 @@ ln_catch <- function(con, standardize = TRUE) {
                     sid = fteg,
                     catch = magn_oslaegt,
                     area = veidisvaedi,
-                    gid = veidarf)
+                    gid = veidarf) %>% 
+      dplyr::mutate(year = year(date))
   }
   
   return(q)

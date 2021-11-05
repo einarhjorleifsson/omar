@@ -129,7 +129,6 @@ vid_history <- function(con) {
 #   dplyr::arrange(VID)
 # DBI::dbWriteTable(con, name = "VESSEL_MMSI_20201215", value = v_mmsi)
 
-
 vid_mmsi <- function(con) {
   tbl_mar(con, "ops$einarhj.VESSEL_MMSI_20201215")
 }
