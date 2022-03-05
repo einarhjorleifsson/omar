@@ -28,7 +28,8 @@ stk_trail <- function(con, year) {
                   time = posdate,
                   lon, lat, speed, heading,
                   hid = harborid,
-                  io = in_out_of_harbor)
+                  io = in_out_of_harbor,
+                  rectime = recdate)
   
 }
 

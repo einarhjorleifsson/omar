@@ -13,5 +13,7 @@ gid_isscfg_category(con)
 A query
 }
 \description{
-International Standard Statistical Classification of Fishing Gear (ISSCFG), see http://www.fao.org/fishery/docs/DOCUMENT/cwp/handbook/annex/AnnexM2fishinggear.pdf
+International Standard Statistical Classification of Fishing Gear (ISSCFG),
+see http://www.fao.org/fishery/docs/DOCUMENT/cwp/handbook/annex/AnnexM2fishinggear.pdf and
+https://www.fao.org/documents/card/en/c/cb4966en
 }
