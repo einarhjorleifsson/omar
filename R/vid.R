@@ -1,3 +1,51 @@
+# Umdæmisbókstafir íslenskra skipa ---------------------------------------------
+# ust <-
+#   tribble(~UST, ~STADUR,
+#           "AK", "Akranes",
+#           "NS", "Norður-Múlasýsla og Seyðisfjörður",
+#           "ÁR", "Árnessýsla",
+#           "ÓF", "Ólafsfjörður",
+#           "BA", "Barðastrandarsýsla",
+#           "RE", "Reykjavík",
+#           "DA", "Dalasýsla",
+#           "SF", "Austur-Skaftafellssýsla",
+#           "EA", "Eyjafjarðarsýsla og Akureyri",
+#           "SH", "Snæfellsness-og Hnappadalssýsla",
+#           "GK", "Gullbringusýsla",
+#           "SI", "Siglufjörður",
+#           "HF", "Kjósarsýsla og Hafnarfjörður",
+#           "SK", "Skagafjarðarsýsla og Sauðárkrókur",
+#           "HU", "Húnavatnssýsla",
+#           "ST", "Strandasýsla",
+#           "ÍS", "Ísafjarðarsýsla",
+#           "SU", "Suður-Múlasýsla",
+#           "KE", "Keflavík",
+#           "VE", "Vestmannaeyjar",
+#           "KÓ", "Kópavogur",
+#           "VS", "Vestur-Skaftafellssýsla",
+#           "MB", "Mýra-og Borgarfjarðarsýsla",
+#           "ÞH", "Þingeyjarsýslur",
+#           "NK", "Neskaupstaður")
+# dbWriteTable(con, name = "VESSEL_UMDAEMISBOKSTAFIR", value = ust, overwrite = TRUE)
+
+#' Icelandic vessel local identification letters
+#' 
+#' Table containing local identification letters and location name
+#'
+#' @param con sql connection
+#'
+#' @return sql query
+#' @export
+#'
+vessel_ust <- function(con) {
+  tbl_mar(con, "ops$einarhj.VESSEL_UMDAEMISBOKSTAFIR")
+}
+
+
+
+
+
+
 #' The official vessel registry
 #'
 #' @param con oracle connection
@@ -16,12 +64,12 @@ vid_registry <- function(con, standardize = TRUE) {
     q <-
       q %>%
       dplyr::select(vid = skipnr,
-                    name = nafnskips,
+                    vessel = nafnskips,
                     uid = umdnr,
                     cs = kallmerki,
                     imo = imonr,
                     vclass = notkunarteg,
-                    homeharbour = heimahofn,
+                    port = heimahofn,
                     propeller_diameter = thvermskrufu,
                     engine_kw = vel_kw,
                     power_index = aflvisir,
@@ -47,8 +95,8 @@ vid_registry <- function(con, standardize = TRUE) {
                     #                     Blidfari has abnormal engine_kw, divided by 100
                     engine_kw = dplyr::case_when(vid == 2069 ~ engine_kw / 10000,
                                                  TRUE ~ engine_kw / 100),
-                    name = str_trim(name),
-                    homeharbour = str_trim(homeharbour),
+                    vessel = str_trim(vessel),
+                    port = str_trim(port),
                     length_class = dplyr::case_when(length < 8 ~ "<8",
                                                     length >= 8  & length < 10 ~ "08-10",
                                                     length >= 10 & length < 12 ~ "10-12",
@@ -240,41 +288,7 @@ vid_csprefix <- function(con) {
   tbl_mar(con, "ops$einarhj.VESSEL_CS_ITU_PREFIX")
 }
 
-# Umdæmisbókstafir íslenskra skip
 
-
-# ust <-
-#   tribble(~UST, ~STADUR,
-#           "AK", "Akranes",
-#           "NS", "Norður-Múlasýsla og Seyðisfjörður",
-#           "ÁR", "Árnessýsla",
-#           "ÓF", "Ólafsfjörður",
-#           "BA", "Barðastrandarsýsla",
-#           "RE", "Reykjavík",
-#           "DA", "Dalasýsla",
-#           "SF", "Austur-Skaftafellssýsla",
-#           "EA", "Eyjafjarðarsýsla og Akureyri",
-#           "SH", "Snæfellsness-og Hnappadalssýsla",
-#           "GK", "Gullbringusýsla",
-#           "SI", "Siglufjörður",
-#           "HF", "Kjósarsýsla og Hafnarfjörður",
-#           "SK", "Skagafjarðarsýsla og Sauðárkrókur",
-#           "HU", "Húnavatnssýsla",
-#           "ST", "Strandasýsla",
-#           "ÍS", "Ísafjarðarsýsla",
-#           "SU", "Suður-Múlasýsla",
-#           "KE", "Keflavík",
-#           "VE", "Vestmannaeyjar",
-#           "KO", "Kópavogur",
-#           "VS", "Vestur-Skaftafellssýsla",
-#           "MB", "Mýra-og Borgarfjarðarsýsla",
-#           "ÞH", "Þingeyjarsýslur",
-#           "NK", "Neskaupstaður")
-# dbWriteTable(con, name = "VESSEL_UMDAEMISBOKSTAFIR", value = ust, overwrite = TRUE)
-
-vid_ust <- function(con) {
-  tbl_mar(con, "ops$einarhj.VESSEL_UMDAEMISBOKSTAFIR")
-}
 
 # ------------------------------------------------------------------------------
 # Vessel table -----------------------------------------------------------------
