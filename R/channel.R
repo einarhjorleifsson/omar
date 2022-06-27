@@ -17,10 +17,12 @@ ch_station <- function(con, std = TRUE, trim = TRUE) {
   if(std) {
     q <- 
       q %>% 
-      dplyr::select(stid = stod_id,
+      dplyr::select(.stid = stod_id,
                     vid = skip_nr,
                     date = dags,
                     year = ar,
+                    sq = reitur,
+                    ssq = smareitur,
                     lon = kastad_lengd,
                     lat = kastad_breidd,
                     lon2 = hift_lengd,
@@ -31,7 +33,7 @@ ch_station <- function(con, std = TRUE, trim = TRUE) {
                     bt = botnhiti,
                     dplyr::everything())
     if(trim) {
-      q <- q %>% dplyr::select(stid:bt)
+      q <- q %>% dplyr::select(.stid:bt)
     }
   }
   
@@ -48,7 +50,7 @@ ch_station <- function(con, std = TRUE, trim = TRUE) {
 #' @param trim trim return only key variables (default is TRUE). only operational
 #' if std is TRUE
 #'
-#' @return a tibble query
+#' @return a tibble query, note towlength is in meters is std is set to TRUE
 #' @export
 #'
 ch_sample <- function(con, std = TRUE, trim = TRUE) {
@@ -58,20 +60,25 @@ ch_sample <- function(con, std = TRUE, trim = TRUE) {
   if(std) {
     q <- 
       q %>% 
-      dplyr::select(stid = stod_id,
-                    id = synis_id,
+      dplyr::select(.stid = stod_id,
+                    .id = synis_id,
                     gid = veidarfaeri,
                     sclass = synaflokkur_nr,
                     t1 = togbyrjun,
                     t2 = togendir,
+                    tid = tog_nr,
                     speed = toghradi,
                     towlength = toglengd,
-                    dplyr::everything())
+                    dplyr::everything()) %>% 
+      # go metric
+      dplyr::mutate(towlength = 1852 * towlength)
     if(trim) {
-      q <- q %>% dplyr::select(stid:towlength)
+      q <- q %>% dplyr::select(.stid:towlength)
     }
   }
   
   return(q)
   
 }
+
+

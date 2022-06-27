@@ -1,0 +1,57 @@
+---
+title: "Indices"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(tidyverse)
+library(omar)
+con <- connect_mar()
+```
+
+## Station data
+
+```{r}
+q <- omar::smx_st(con)
+```
+
+```{r}
+q %>% 
+  filter(year == 2021) %>% 
+  ggplot() +
+  theme_bw(base_size = 14) +
+  geom_path(data = geo::island, aes(lon, lat)) +
+  geom_segment(aes(x = lon, y = lat, xend = lon2, yend = lat2,
+                   colour = sur),
+               lwd = 1) +
+  scale_colour_brewer(palette = "Set1") +
+  coord_quickmap() +
+  labs(x = NULL, y = NULL, colour = "Survey")
+```
+
+```{r}
+q <- omar:::smx_len(con, sid = 15)
+q %>% count(sclass, stratification)
+```
+
+```{r}
+q %>% 
+  mutate(n = ifelse(is.na(n), 0, n),
+         rn = ifelse(is.na(rn), 1, rn)) %>% 
+  group_by(.id, sur, year, lon, lat) %>% 
+  summarise(n = sum(n * rn),
+            .groups = "drop") %>% 
+  collect(n = Inf) ->
+  d
+d %>% 
+  ggplot(aes(year, n)) +
+  stat_summary(fun.data = "mean_cl_boot") +
+  facet_wrap(~ sur, scales = "free_y")
+```
+
