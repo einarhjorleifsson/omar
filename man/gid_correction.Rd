@@ -10,7 +10,8 @@ gid_correction(con)
 \item{con}{oracle connection}
 }
 \value{
-a query
+a query containing: visir, id and gid where the latter is the corrected
+gear identification
 }
 \description{
 Gear correction table

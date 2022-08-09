@@ -55,3 +55,70 @@ d %>%
   facet_wrap(~ sur, scales = "free_y")
 ```
 
+## Issues
+
+```{r}
+load("/u2/reikn/R/SurveyWork/SMB/catchperstation.rdata")
+library(omar)
+con <- connect_mar()
+smb.comparison <- 
+  smx_st(con, sclass = 30) %>% 
+  collect(n = Inf) %>% 
+  select(.id, year, sq, tid, stratum, idx) %>% 
+  full_join(utbrteg %>% 
+  as_tibble() %>% 
+  select(.id = synis.id, reitur, tog.nr, newstrata))
+smb.comparison %>% 
+  filter(is.na(stratum)) %>% 
+  count(tid)
+```
+
+So we have 116 tows that are not assinged to strata in the smx_st-approach
+
+```{r}
+smb.comparison %>% 
+  filter(tid == 15,
+         is.na(stratum))
+smb.comparison %>% 
+  filter(sq == 718,
+         tid == 15)
+mar::les_stod(con) %>% 
+  left_join(mar::les_syni(con)) %>%
+  filter(synaflokkur_nr == 30,
+         reitur == 718) %>% 
+  count(tog_nr)
+
+d <- 
+  mar::les_stod(con) %>% 
+  left_join(mar::les_syni(con)) %>%
+  filter(synaflokkur_nr == 30,
+         reitur == 718) %>% 
+  collect(n = Inf)
+d %>% 
+  ggplot(aes(kastad_lengd, kastad_breidd, xend = hift_lengd, yend = hift_breidd)) +
+  geom_segment(aes(colour = factor(tog_nr))) +
+  coord_quickmap()
+d %>% 
+  group_by(ar, tog_nr) %>% 
+  count() %>% 
+  spread(tog_nr, n) %>% 
+  as.data.frame()
+```
+
+
+
+
+```{r}
+smb.comparison %>% 
+  mutate(stratum = replace_na(stratum, -9)) %>% 
+  group_by(idx) %>% 
+  summarise(n.stratum = n_distinct(stratum)) %>% 
+  filter(n.stratum > 1)
+```
+
+```{r}
+smb.comparison %>% 
+  filter(sq == 662,
+         tid == 41)
+```
+

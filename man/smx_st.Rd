@@ -7,7 +7,8 @@
 smx_st(
   con,
   sclass = c(19, 30, 31, 34, 35, 37, 40),
-  stratification = "new_strata"
+  stratification = "new_strata",
+  trim_towlength = TRUE
 )
 }
 \arguments{
@@ -16,6 +17,8 @@ smx_st(
 \item{sclass}{A numerical vector indicating sampling class (synaflokkur)}
 
 \item{stratification}{Any of "old_strata", "new_strata", "ghl_strata"}
+
+\item{trim_towlength}{A boolean (default TRUE) that trims towlength}
 }
 \value{
 a tibble query

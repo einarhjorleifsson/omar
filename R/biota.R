@@ -10,7 +10,18 @@
 #' @param trim trim return only key variables (default is TRUE). only operational
 #' if std is TRUE
 #'
-#' @return a tibble query
+#' @return a tibble query with the following variables if arguement std is TRUE (default):
+#' \describe{
+#'   \item{.id}{synis_id)}
+#'   \item{sid}{species id}
+#'   \item{length}{length, normally in centimeters)}
+#'   \item{wt}{derived weights in grams, estimated from length weight relationship. If parameters not available in biota.lw_coeffs then 0.01 and 3 are used}
+#'   \item{sex}{sex, normally 1 is male, 2 is female}
+#'   \item{mat}{maturity stage}
+#'   \item{age}{age, normally in years}
+#'   \item{n}{number of measured fish}
+#'   \item{rn}{the count raising factor}
+#' }
 #' @export
 #'
 bi_len <- function(con, std = TRUE, trim = TRUE) {
@@ -28,13 +39,13 @@ bi_len <- function(con, std = TRUE, trim = TRUE) {
                     age = aldur,
                     n = fjoldi,
                     rn = r_talid) %>% 
-      dplyr::mutate(rn = nvl(rn, 1)) %>% 
-      dplyr::left_join(sid_lwcoeffs(con),
-                       by = "sid") %>% 
-      dplyr::mutate(a  = ifelse(is.na(a), 0.01, a),
-                    b  = ifelse(is.na(b), 3.00, b),
-                    wt = (a * length^b) / 1e3, .after = length) %>% 
-      dplyr::select(-c(a, b))
+      dplyr::mutate(rn = nvl(rn, 1)) # %>% 
+      # dplyr::left_join(sid_lwcoeffs(con),
+      #                  by = "sid") %>% 
+      # dplyr::mutate(a  = ifelse(is.na(a), 0.01, a),
+      #               b  = ifelse(is.na(b), 3.00, b),
+      #               wt = (a * length^b) / 1e3, .after = length) %>% 
+      # dplyr::select(-c(a, b))
     if(trim) {
       q <-
         q %>% 

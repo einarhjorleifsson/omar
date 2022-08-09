@@ -64,11 +64,20 @@ gid_orri <- function(con) {
                   gid_lods = lods_veidarfaeri)
 }
 
+# Ideally this function should both work live as well as a lookup on archieves
+# Here we have thess possibilites:
+#  1. Run a crontab, updating the lookup table, like once a month (week?)
+#  2. Have argument in the function to either use the lookup or not
+#     Could one use the lookup on the historical and then "live" on the
+#     the remainder?
+#
+# The code for updating the table is found in data-raw/00-SETUP_gear-correction.R
 #' Gear correction table
 #'
 #' @param con oracle connection
-#'
-#' @return a query
+#' 
+#' @return a query containing: visir, id and gid where the latter is the corrected
+#' gear identification
 #' @export
 #'
 gid_correction <- function(con) {

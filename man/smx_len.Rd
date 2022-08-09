@@ -2,7 +2,7 @@
 % Please edit documentation in R/indices.R
 \name{smx_len}
 \alias{smx_len}
-\title{smx_lenth}
+\title{smx_length}
 \usage{
 smx_len(
   con,

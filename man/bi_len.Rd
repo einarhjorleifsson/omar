@@ -15,7 +15,18 @@ bi_len(con, std = TRUE, trim = TRUE)
 if std is TRUE}
 }
 \value{
-a tibble query
+a tibble query with the following variables if arguement std is TRUE (default):
+\describe{
+\item{.id}{synis_id)}
+\item{sid}{species id}
+\item{length}{length, normally in centimeters)}
+\item{wt}{derived weights in grams, estimated from length weight relationship. If parameters not available in biota.lw_coeffs then 0.01 and 3 are used}
+\item{sex}{sex, normally 1 is male, 2 is female}
+\item{mat}{maturity stage}
+\item{age}{age, normally in years}
+\item{n}{number of measured fish}
+\item{rn}{the count raising factor}
+}
 }
 \description{
 Reads biota.lengd_skalad_v that includes a raising factor and
