@@ -1,0 +1,57 @@
+---
+title: "AIS"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(sf)
+library(mapdeck)
+library(tidyverse)
+library(omar)
+con <- connect_mar()
+```
+
+## Case in point - Múlaberg
+
+```{r}
+omar::mmsi_vessel(con) %>% 
+  filter(vid == 1281) %>% 
+  pull(mmsi) ->
+  MMSI
+# slow, not indexed
+astd <- 
+  omar:::pam_trail(con) %>% 
+  filter(mmsi == MMSI) %>% 
+  collect(n = Inf)
+mar:::stk_mid_vid(con) %>% 
+  filter(vid == 1281) %>% 
+  pull(mid) ->
+  MID
+ais <- 
+  stk_trail(con) %>% 
+  filter(mid == MID) %>% 
+  collect(n = Inf)
+d <- 
+  bind_rows(ais %>% select(time, lon, lat, speed) %>% mutate(source = "stk"),
+            astd %>% select(time, lon, lat) %>% mutate(source = "ast")) %>% 
+  arrange(time) %>% 
+  st_as_sf(coords = c("lon", "lat"),
+           crs = 4326,
+           remove = FALSE)
+d %>% 
+  mutate(year = lubridate::year(time)) %>% 
+  filter(year == 2020) %>% 
+  filter(between(lon, -30, -10),
+         between(lat, 62, 69)) %>% 
+  mapdeck() %>% 
+  add_scatterplot(fill_colour = "source",
+                  radius = 100,
+                  legend = TRUE)
+```
+

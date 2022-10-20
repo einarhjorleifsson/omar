@@ -4,13 +4,15 @@
 \alias{lb_static}
 \title{Logbook static (passsive) gear}
 \usage{
-lb_static(con, correct_gear = FALSE)
+lb_static(con, correct_gear = TRUE, trim = TRUE)
 }
 \arguments{
-\item{con}{oracle connection}
+\item{con}{Oracle connection}
 
-\item{correct_gear}{a boolean (default FALSE) checks for lookup-table for
+\item{correct_gear}{a boolean (default TRUE) checks for lookup-table for
 gear correction (adds variable "gidc" to the tibble)}
+
+\item{trim}{trim variables returned (default TRUE)}
 }
 \value{
 A sql tibble

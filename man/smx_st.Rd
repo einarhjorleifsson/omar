@@ -8,6 +8,7 @@ smx_st(
   con,
   sclass = c(19, 30, 31, 34, 35, 37, 40),
   stratification = "new_strata",
+  trim = TRUE,
   trim_towlength = TRUE
 )
 }
@@ -17,6 +18,8 @@ smx_st(
 \item{sclass}{A numerical vector indicating sampling class (synaflokkur)}
 
 \item{stratification}{Any of "old_strata", "new_strata", "ghl_strata"}
+
+\item{trim}{return only "key" variables (default TRUE)}
 
 \item{trim_towlength}{A boolean (default TRUE) that trims towlength}
 }

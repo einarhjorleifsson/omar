@@ -57,6 +57,30 @@ d %>%
 
 ## Issues
 
+### Slow execution to get length indices
+
+```{r}
+con <- connect_mar()
+q.omar <- 
+  smx_len(con, sid = 1, sclass = 30)
+q.tidypax <- 
+  tidypax::si_stations(con) %>% 
+  filter(sampling_type == 30) %>% 
+  tidypax::si_by_length(species = 1)
+q.tidypax2 <- 
+  q.tidypax %>% 
+  tidypax::si_add_strata() %>% 
+  filter(stratification == 'new_strata')
+# this is slow ...
+system.time(q.omar     %>% collect(n = Inf))
+system.time(q.tidypax  %>% collect(n = Inf))
+system.time(q.tidypax2 %>% collect(n = Inf))
+# why is this faster?
+system.time(q.omar %>% select(-rn) %>% collect(n = Inf))
+```
+
+
+
 ```{r}
 load("/u2/reikn/R/SurveyWork/SMB/catchperstation.rdata")
 library(omar)

@@ -18,13 +18,17 @@ Imports:
     dbplyr,
     dplyr,
     magrittr,
-    mar,
     purrr,
+    ramb,
     ROracle,
+    sf,
     stringr,
     tibble,
-    tidyr
+    tidyr,
+    traipse
 Suggests: 
     rmarkdown
 Depends: 
     R (>= 2.10)
+LazyDataCompression: bzip2
+

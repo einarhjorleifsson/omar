@@ -55,7 +55,7 @@ vessel_ust <- function(con) {
 #' @export
 #'
 
-vid_registry <- function(con, standardize = TRUE) {
+vessel_registry <- function(con, standardize = TRUE) {
   
   q <-
     tbl_mar(con, "kvoti.skipaskra_siglo")
@@ -123,7 +123,20 @@ vid_registry <- function(con, standardize = TRUE) {
   
 }
 
-vid_history <- function(con) {
+#' @rdname vessel_registry
+#' @export
+vid_registry <- vessel_registry
+
+
+
+#' Vessel history per recorded by Fiskistofa
+#'
+#' @param con oracle connection
+#'
+#' @return a query
+#' @export
+#'
+vessel_history <- function(con) {
   tbl_mar(con, "kvoti.skipasaga") %>%
     dplyr::filter(skip_nr > 1) %>%
     dplyr::mutate(einknr = dplyr::case_when(nchar(einknr) == 1 ~ paste0("00", einknr),
@@ -133,12 +146,17 @@ vid_history <- function(con) {
     dplyr::rename(vid = skip_nr, hist = saga_nr, t1 = i_gildi, t2 = ur_gildi,
                   uid = einkst, code = flokkur) %>%
     dplyr::left_join(tbl_mar(con, "kvoti.utg_fl") %>%
-                       dplyr::select(code = flokkur, flokkur = heiti)) %>%
+                       dplyr::select(code = flokkur, flokkur = heiti),
+                     by = "code") %>%
     dplyr::select(-c(einknr, snn:sbn)) %>%
-    dplyr::arrange(vid, hist) %>%
-    dplyr::select(vid:code, flokkur, dplyr::everything())
+    dplyr::select(vid:code, flokkur, dplyr::everything()) |> 
+    dplyr::arrange(vid, hist)
   
 }
+
+#' @rdname vessel_history
+#' @export
+vid_history <- vessel_history
 
 # pth <- "https://www.pfs.is/library/Skrar/Tidnir-og-taekni/Numeramal/MMSI/NUMER%20Query270619.xlsx"
 # download.file(pth, destfile = "data-raw/ss-270619_mmsi.xlsx")
@@ -434,14 +452,17 @@ vid_vessels <- function(con) {
 # vclass %>% count(CLASS) %>% filter(n > 1)
 # dbWriteTable(con, name = "VESSEL_CLASS", value = vclass, overwrite = TRUE)
 
-vid_class <- function(con) {
-  tbl_mar(con, "ops$einarhj.VESSEL_CLASS")
+#' Vessel class
+#'
+#' @param con oracle connection
+#'
+#' @return a query
+#' @export
+#'
+vessel_class <- function(con) {
+  tbl_mar(con, "ops$einarhj.VESSEL_CLASS") |> 
+    dbplyr::rename(vclass = code)
 }
-
-
-## Siglingamálastofnun - skipaflokkur
-
-
 
 #' Check if IMO is valid
 #' 
@@ -452,7 +473,7 @@ vid_class <- function(con) {
 #' @return A boolean TRUE/FALSE vector
 #' @export
 #'
-valid_imo <- function(x) {
+vessel_valid_imo <- function(x) {
   lh <- function(x, n) { str_sub(x, n, n) %>% as.integer() }
   #if(nchar(x) != 7) return(FALSE)
   x2 <- 
@@ -464,8 +485,3 @@ valid_imo <- function(x) {
     lh(x, 6) * 2
   return(str_sub(x2, nchar(x2)) == str_sub(x, nchar(x)))
 }
-
-
-
-
-

@@ -89,40 +89,19 @@ lb_base <- function(con, correct_gear = FALSE) {
 #' Logbook mobile (active) gear
 #'
 #' @param con oracle connection
-#' @param correct_gear a boolean (default FALSE) checks for lookup-table for
+#' @param correct_gear a boolean (default TRUE) checks for lookup-table for
 #' gear correction (adds variable "gidc" to the tibble)
+#' @param trim trim variables returned (default TRUE)
 #'
 #' @return a sql tibble
 #' @export
 
-lb_mobile <- function(con, correct_gear = FALSE) {
-  
+lb_mobile <- function(con, correct_gear = TRUE, trim = TRUE) {
   
   q <- 
-    lb_base0(con) %>% 
+    lb_base(con, correct_gear = correct_gear) %>% 
     dplyr::inner_join(tbl_mar(con, "afli.toga"),
                       by = "visir")
-  
-  if(correct_gear) {
-    q <- 
-      q %>% 
-      dplyr::left_join(gid_correction(con) %>% 
-                         dplyr::select(visir, gidc),
-                       by = "visir") %>% 
-      dplyr::rename(gid_old = gid,
-                    gid = gidc) %>% 
-      # if gear correction not yet made in the oracle lookup table
-      dplyr::mutate(gid = ifelse(is.na(gid), gid_old, gid)) %>% 
-      dplyr::left_join(gid_orri_plus(con) %>%
-                         dplyr::select(gid, gid2),
-                       by = "gid")
-  } else {
-    q <- 
-      q %>% 
-      dplyr::left_join(gid_orri_plus(con) %>%
-                         dplyr::select(gid, gid2),
-                       by = "gid")
-  }
   
   q <-
     q %>% 
@@ -160,46 +139,31 @@ lb_mobile <- function(con, correct_gear = FALSE) {
                   on.bottom,
                   dplyr::everything())
   
+  if(trim) {
+    q <-
+      q %>% 
+      dplyr::select(visir:on.bottom)
+  }
+  
   return(q)
 }
 
 #' Logbook static (passsive) gear
 #'
 #' @param con Oracle connection
-#' @param con oracle connection
-#' @param correct_gear a boolean (default FALSE) checks for lookup-table for
+#' @param correct_gear a boolean (default TRUE) checks for lookup-table for
 #' gear correction (adds variable "gidc" to the tibble)
+#' @param trim trim variables returned (default TRUE)
 #' 
 #' @return A sql tibble
 #' @export
 #' 
-lb_static <- function(con, correct_gear = FALSE) {
+lb_static <- function(con, correct_gear = TRUE, trim = TRUE) {
   
   q <- 
-    lb_base0(con) %>% 
+    lb_base(con, correct_gear = correct_gear) %>% 
     dplyr::inner_join(tbl_mar(con, "afli.lineha"),
-               by = "visir")
-  
-  if(correct_gear) {
-    q <- 
-      q %>% 
-      dplyr::left_join(gid_correction(con) %>% 
-                         dplyr::select(visir, gidc),
-                       by = "visir") %>% 
-      dplyr::rename(gid_old = gid,
-                    gid = gidc) %>% 
-      # if gear correction not yet made in the oracle lookup table
-      dplyr::mutate(gid = ifelse(is.na(gid), gid_old, gid)) %>% 
-      dplyr::left_join(gid_orri_plus(con) %>%
-                         dplyr::select(gid, gid2),
-                       by = "gid")
-  } else {
-    q <- 
-      q %>% 
-      dplyr::left_join(gid_orri_plus(con) %>%
-                         dplyr::select(gid, gid2),
-                       by = "gid")
-  }
+                      by = "visir")
   
   q <-
     q %>% 
@@ -228,6 +192,12 @@ lb_static <- function(con, correct_gear = FALSE) {
                   fj_kroka,
                   dplyr::everything())
   
+  if(trim) {
+    q <-
+      q %>% 
+      dplyr::select(visir:fj_kroka)
+  }
+  
   return(q)
   
 }
@@ -243,3 +213,40 @@ lb_std_meshsize <- function(d) {
                                               TRUE ~ NA_integer_))
   
 }
+
+#' Logbook trails
+#'
+#' @param con Oracle connection
+#' @param std Boolean (default TRUE)
+#' @param trim Boolean (default TRUE)
+#'
+#' @return A query
+#' @export
+#'
+lb_trail <- function(con, std = TRUE, trim = TRUE) {
+  q <- omar::tbl_mar(con, "afli.sjalfvirkir_maelar")
+  
+  if(std) {
+    q <- 
+      q %>% 
+      dplyr::select(time = timi,
+                    #lon = lengd,  these are useless values
+                    #lat = breidd,
+                    speed = skip_hradi,
+                    heading = skip_stefna,
+                    z = botndypi,
+                    visir,
+                    dplyr::everything()) |> 
+      dplyr::mutate(speed = speed * 1.94384449)
+  }
+  if(std & trim) {
+    q <-
+      q |> 
+      dplyr::select(time:visir) |> 
+      dplyr::left_join(lb_base(con) |> 
+                         dplyr::select(visir, vid),
+                       by = "visir")
+  }
+  return(q)
+}
+  

@@ -26,7 +26,7 @@
 #'
 bi_len <- function(con, std = TRUE, trim = TRUE) {
   q <-
-    tbl_mar(con, "biota.lengd_skalad_v") 
+    tbl_mar(con, "biota.lengd_skalad_v")
   
   if(std) {
     q <- 
@@ -40,12 +40,12 @@ bi_len <- function(con, std = TRUE, trim = TRUE) {
                     n = fjoldi,
                     rn = r_talid) %>% 
       dplyr::mutate(rn = nvl(rn, 1)) # %>% 
-      # dplyr::left_join(sid_lwcoeffs(con),
-      #                  by = "sid") %>% 
-      # dplyr::mutate(a  = ifelse(is.na(a), 0.01, a),
-      #               b  = ifelse(is.na(b), 3.00, b),
-      #               wt = (a * length^b) / 1e3, .after = length) %>% 
-      # dplyr::select(-c(a, b))
+    # dplyr::left_join(sid_lwcoeffs(con),
+    #                  by = "sid") %>% 
+    # dplyr::mutate(a  = ifelse(is.na(a), 0.01, a),
+    #               b  = ifelse(is.na(b), 3.00, b),
+    #               wt = (a * length^b) / 1e3, .after = length) %>% 
+    # dplyr::select(-c(a, b))
     if(trim) {
       q <-
         q %>% 
@@ -95,7 +95,33 @@ bi_age <- function(con, std = TRUE, trim = TRUE) {
   return(q)
 }
 
+
+bi_scl <- function(con) {
+  tbl_mar(con, "biota.skalar_v") %>% 
+    dplyr::select(.id = synis_id,
+                  sid = tegund_nr,
+                  ot = kvarnadir,
+                  le = maeldir,
+                  n = taldir)
+}
+
+
+
 bi_mea <- function(con) {
   q <- 
-    tbl_mar(con, "biota.measure")
+    tbl_mar(con, "biota.measure") %>% 
+    dplyr::select(.id = sample_id,
+                  sid = species_no,
+                  type = measure_type,
+                  n = count,
+                  # rate, seems to be an empty field
+                  length,
+                  sex = sex_no,
+                  mat = sexual_maturity_id,
+                  wt = weight,
+                  gutted,
+                  stomach,
+                  liver,
+                  gonads = genital)
+  return(q)
 }
