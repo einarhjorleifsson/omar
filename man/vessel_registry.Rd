@@ -3,7 +3,7 @@
 \name{vessel_registry}
 \alias{vessel_registry}
 \alias{vid_registry}
-\title{The official vessel registry}
+\title{The official Icelandic vessel registry}
 \usage{
 vessel_registry(con, standardize = TRUE)
 
@@ -18,5 +18,5 @@ vid_registry(con, standardize = TRUE)
 a query
 }
 \description{
-The official vessel registry
+Access to table kvoti.skipaskra_siglo
 }

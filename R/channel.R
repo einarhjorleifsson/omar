@@ -64,6 +64,7 @@ ch_sample <- function(con, std = TRUE, trim = TRUE) {
                     .id = synis_id,
                     gid = veidarfaeri,
                     sclass = synaflokkur_nr,
+                    tow_id = tog_nr,
                     t1 = togbyrjun,
                     t2 = togendir,
                     tid = tog_nr,

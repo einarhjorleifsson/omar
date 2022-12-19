@@ -3,6 +3,9 @@
 \name{vessel_valid_imo}
 \alias{vessel_valid_imo}
 \title{Check if IMO is valid}
+\source{
+\url{https://en.wikipedia.org/wiki/IMO_number}
+}
 \usage{
 vessel_valid_imo(x)
 }
@@ -13,5 +16,5 @@ vessel_valid_imo(x)
 A boolean TRUE/FALSE vector
 }
 \description{
-https://en.wikipedia.org/wiki/IMO_number
+Check if IMO is valid
 }
