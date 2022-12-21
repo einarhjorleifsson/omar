@@ -4,15 +4,18 @@
 \alias{bi_len}
 \title{bi_len}
 \usage{
-bi_len(con, std = TRUE, trim = TRUE)
+bi_len(con, std = TRUE, trim = TRUE, weights = TRUE)
 }
 \arguments{
 \item{con}{oracle connection}
 
 \item{std}{create standardized/shortcut names (default is TRUE)}
 
-\item{trim}{trim return only key variables (default is TRUE). only operational
-if std is TRUE}
+\item{trim}{trim return only key variables (default is TRUE). Only operational
+if std is TRUE.}
+
+\item{weights}{Gets or calculates weights (default is TRUE). Only operational
+if std is TRUE.}
 }
 \value{
 a tibble query with the following variables if arguement std is TRUE (default):
@@ -26,6 +29,7 @@ a tibble query with the following variables if arguement std is TRUE (default):
 \item{age}{age, normally in years}
 \item{n}{number of measured fish}
 \item{rn}{the count raising factor}
+\item{mwt]{the estimated weights in grams for a given length}
 }
 }
 \description{

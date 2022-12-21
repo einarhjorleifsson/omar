@@ -27,6 +27,6 @@ smx_st(
 a tibble query
 }
 \description{
-Returns a station table by a join of channel.stod_v and channel.syni_v. Generall
-indented for standariszed survey.
+Returns a station table by a join of channel.stod_v and channel.syni_v,
+indented for standariszed survey algorithm.
 }

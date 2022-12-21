@@ -182,7 +182,7 @@ vessels_vessels <- function(con) {
 #'
 vessel_class <- function(con) {
   tbl_mar(con, "ops$einarhj.VESSEL_CLASS") |> 
-    dbplyr::rename(vclass = code)
+    dplyr::rename(vclass = code)
 }
 
 #' Check if IMO is valid 

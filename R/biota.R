@@ -7,8 +7,10 @@
 #' 
 #' @param con oracle connection
 #' @param std create standardized/shortcut names (default is TRUE)
-#' @param trim trim return only key variables (default is TRUE). only operational
-#' if std is TRUE
+#' @param trim trim return only key variables (default is TRUE). Only operational
+#' if std is TRUE.
+#' @param weights Gets or calculates weights (default is TRUE). Only operational
+#' if std is TRUE.
 #'
 #' @return a tibble query with the following variables if arguement std is TRUE (default):
 #' \describe{
@@ -21,10 +23,11 @@
 #'   \item{age}{age, normally in years}
 #'   \item{n}{number of measured fish}
 #'   \item{rn}{the count raising factor}
+#'   \item{mwt]{the estimated weights in grams for a given length}
 #' }
 #' @export
 #'
-bi_len <- function(con, std = TRUE, trim = TRUE) {
+bi_len <- function(con, std = TRUE, trim = TRUE, weights = TRUE) {
   q <-
     tbl_mar(con, "biota.lengd_skalad_v")
   
@@ -51,9 +54,32 @@ bi_len <- function(con, std = TRUE, trim = TRUE) {
         q %>% 
         dplyr::select(.id:rn)
     }
+    if(weights) {
+      q <- 
+        q |> 
+        dplyr::left_join(bi_lwcoeffs(con),
+                         by = "sid") |> 
+        dplyr::mutate(a = ifelse(is.na(a), 0.01, a), 
+                      b = ifelse(is.na(b), 3, b), 
+                      mwt = a * length^b) %>% 
+        dplyr::select(-c(a, b))
+    }
+    
   }
   
   return(q)
+}
+
+#' Length weight coefficent of some selected species
+#'
+#' @param con oracle connection
+#'
+#' @return A query with sid (species number), a and b
+#' @export
+#'
+bi_lwcoeffs <- function(con) {
+  tbl_mar(con, "biota.lw_coeffs") |> 
+    dplyr::rename(sid = species)
 }
 
 #' by_age
