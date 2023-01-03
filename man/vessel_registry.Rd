@@ -5,14 +5,16 @@
 \alias{vid_registry}
 \title{The official Icelandic vessel registry}
 \usage{
-vessel_registry(con, standardize = TRUE)
+vessel_registry(con, standardize = TRUE, trim = TRUE)
 
-vid_registry(con, standardize = TRUE)
+vid_registry(con, standardize = TRUE, trim = TRUE)
 }
 \arguments{
 \item{con}{oracle connection}
 
 \item{standardize}{boolean (default TRUE), returns "standardized" variable names}
+
+\item{trim}{boolean (default TRUE), returns only "standardized" variable names}
 }
 \value{
 a query

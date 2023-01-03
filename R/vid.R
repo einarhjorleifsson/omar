@@ -5,11 +5,12 @@
 #'
 #' @param con oracle connection
 #' @param standardize boolean (default TRUE), returns "standardized" variable names
+#' @param trim boolean (default TRUE), returns only "standardized" variable names
 #'
 #' @return a query
 #' @export
 #'
-vessel_registry <- function(con, standardize = TRUE) {
+vessel_registry <- function(con, standardize = TRUE, trim = TRUE) {
   
   q <-
     tbl_mar(con, "kvoti.skipaskra_siglo")
@@ -32,7 +33,8 @@ vessel_registry <- function(con, standardize = TRUE) {
                     depth = skraddypt,
                     length = mestalengd,
                     brl = bruttoruml,    # neet a proper acronym
-                    grt = bruttotonn) %>%
+                    grt = bruttotonn,
+                    dplyr::everything()) %>%
       # Need to double check ghost ships
       dplyr::mutate(length_registered = length_registered / 100,
                     # units of cm to meters
@@ -71,6 +73,12 @@ vessel_registry <- function(con, standardize = TRUE) {
                                 NA_character_),
                     imo = ifelse(imo == 0, NA_integer_, imo),
                     vclass = as.integer(vclass))
+  }
+  
+  if(trim) {
+    q <- 
+      q |> 
+      dplyr::select(vid:grt, length_class)
   }
   
   return(q)
