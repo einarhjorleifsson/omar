@@ -3,6 +3,7 @@
 #   * Moved scripts from ~/stasi/oracle_sjor
 # 2022-07-03:
 #   * changed script name
+# 2023-01-02: Updated ops$einarhj.LB_GEAR_CORRECTION
 
 # Notes
 # 

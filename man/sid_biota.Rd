@@ -4,10 +4,14 @@
 \alias{sid_biota}
 \title{biota tegundir}
 \usage{
-sid_biota(con)
+sid_biota(con, std = TRUE, trim = TRUE)
 }
 \arguments{
 \item{con}{oracle connection}
+
+\item{std}{standardize some variable names (default TRUE)}
+
+\item{trim}{return only selected variable names (default TRUE)}
 }
 \value{
 a query

@@ -1,9 +1,8 @@
-#' bi_len
+#' bilen
 #'
 #' Reads biota.lengd_skalad_v that includes a raising factor and 
-#' provides weight as a function of length. No raising done.
-#' 
-#' NOTE: If species only counted at station, not included in algorithm.
+#' provides weight as a function of length. No raising done. If species only 
+#' counted at station, not included in algorithm.
 #' 
 #' @param con oracle connection
 #' @param std create standardized/shortcut names (default is TRUE)
@@ -23,8 +22,9 @@
 #'   \item{age}{age, normally in years}
 #'   \item{n}{number of measured fish}
 #'   \item{rn}{the count raising factor}
-#'   \item{mwt]{the estimated weights in grams for a given length}
+#'   \item{mwt}{the estimated weights in grams for a given length}
 #' }
+#' 
 #' @export
 #'
 bi_len <- function(con, std = TRUE, trim = TRUE, weights = TRUE) {

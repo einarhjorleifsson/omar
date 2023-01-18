@@ -43,7 +43,7 @@ if(SAVE) {
 ## Icelandic MMSI registry -----------------------------------------------------
 
 ### Most recent ----------------------------------------------------------------
-# 2022-12-02
+# 2023-01-15
 # https://www.fjarskiptastofa.is/english/telecom-affairs/maritime-communications
 # "In the following registers information can be found about numbers that have 
 #  been allocated to Icelandic ships: MMSI (DSC and 406 MHz emergency beacons), 
@@ -51,9 +51,9 @@ if(SAVE) {
 #  Selcall (Radiotelex).
 #   Updated November 17th 2022."
 pth <- "https://www.fjarskiptastofa.is/library?itemid=1e46976b-5fed-4431-94dc-7c15f69fb54c"
-download.file(pth, destfile = "tmp.xlsx")
+download.file(pth, destfile = "data-raw/downloads/mmsi_updated_2022-11-17.xlsx")
 v_mmsi <-
-  readxl::read_excel("tmp.xlsx") %>%
+  readxl::read_excel("data-raw/downloads/mmsi_updated_2022-11-17.xlsx") %>%
   janitor::clean_names() %>%
   dplyr::rename(ACTIVE = x5) |> 
   dplyr::mutate(ACTIVE = ifelse(ACTIVE == "0", "No", "Yes")) |> 
@@ -70,10 +70,72 @@ v_mmsi <-
                                         TRUE ~ NA_integer_)) %>%
   dplyr::select(SKNR, VID, VID2, NAME, MMSI, CS, dplyr::everything()) %>%
   dplyr::arrange(VID)
-colnames(v_mmsi) <-toupper(colnames(v_mmsi))
+colnames(v_mmsi) <-tolower(colnames(v_mmsi))
+
+# Merge with older data --------------------------------------------------------
+# 2023-01-15: noted missing mmsi that were in earlier tables
+#             unexpectedly the same mmsi is sometimes in more than one vessel
+vlookup <- function(this, df, key, value) {
+  m <- match(this, df[[key]])
+  df[[value]][m]
+}
+old <- tbl_mar(con, "ops$einarhj.VESSEL_MMSI_20190627") |> collect(n = Inf)
+
+vid.not.in.new <- 
+  bind_rows(v_mmsi |> filter(!is.na(vid)) |> select(sknr:cs) |> mutate(source = "new"),
+            old |> filter(!is.na(vid)) |> select(sknr:cs) |> mutate(source = "old")) |> 
+  arrange(vid, source) |> 
+  group_by(vid) |> 
+  mutate(n = n()) |> 
+  ungroup() |> 
+  filter(n == 1,
+         source == "old") |> 
+  mutate(in.old = ifelse(mmsi %in% v_mmsi$mmsi, TRUE, FALSE)) |> 
+  filter(!in.old)
+
+
+
+vid2.not.in.new <- 
+  bind_rows(v_mmsi |> filter(!is.na(vid2)) |> select(sknr:cs) |> mutate(source = "new"),
+            old |> filter(!is.na(vid2)) |> select(sknr:cs) |> mutate(source = "old")) |> 
+  arrange(vid2, source) |> 
+  group_by(vid2) |> 
+  mutate(n = n()) |> 
+  ungroup() |> 
+  filter(n == 1,
+         source == "old") |> 
+  mutate(in.old = ifelse(mmsi %in% v_mmsi$mmsi, TRUE, FALSE)) |> 
+  filter(!in.old)
+
+d <- 
+  bind_rows(v_mmsi,
+            vid.not.in.new |> select(sknr:cs),
+            vid2.not.in.new |> select(sknr:cs)) |> 
+  arrange(sknr, vid, vid2)
+# check:
+d |> 
+  group_by(mmsi) |> 
+  mutate(n = n()) |> 
+  filter(n > 1)
+names(d) <- toupper(names(d))
 if(SAVE) {
   con <- omar::connect_mar()
   DBI::dbWriteTable(con, name = "MMSI_ICELANDIC_REGISTRY", value = v_mmsi, overwrite = TRUE)
+}
+
+
+
+
+d |> 
+  group_by(MMSI) |> 
+  mutate(n = n()) |> 
+  ungroup() |> 
+  filter(n > 1) |> 
+  arrange(MMSI) |> 
+  view()
+if(SAVE) {
+  con <- omar::connect_mar()
+  DBI::dbWriteTable(con, name = "MMSI_ICELANDIC_REGISTRY", value = d, overwrite = TRUE)
 }
 
 ### Historical stuff -----------------------------------------------------------

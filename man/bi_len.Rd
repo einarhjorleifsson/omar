@@ -2,7 +2,7 @@
 % Please edit documentation in R/biota.R
 \name{bi_len}
 \alias{bi_len}
-\title{bi_len}
+\title{bilen}
 \usage{
 bi_len(con, std = TRUE, trim = TRUE, weights = TRUE)
 }
@@ -29,13 +29,11 @@ a tibble query with the following variables if arguement std is TRUE (default):
 \item{age}{age, normally in years}
 \item{n}{number of measured fish}
 \item{rn}{the count raising factor}
-\item{mwt]{the estimated weights in grams for a given length}
+\item{mwt}{the estimated weights in grams for a given length}
 }
 }
 \description{
 Reads biota.lengd_skalad_v that includes a raising factor and
-provides weight as a function of length. No raising done.
-}
-\details{
-NOTE: If species only counted at station, not included in algorithm.
+provides weight as a function of length. No raising done. If species only
+counted at station, not included in algorithm.
 }
