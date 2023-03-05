@@ -13,15 +13,15 @@ sid_biota <- function(con, std = TRUE, trim = TRUE) {
     if(trim) {
       q <-
         tbl_mar(con, "biota.tegund_v") %>% 
-        dplyr::rename(sid = tegund_nr,
-                      heiti = tegund,
+        dplyr::select(sid = tegund_nr,
+                      tegund = heiti,
                       latin = visinda_heiti,
                       species = enskt_heiti)
     } else {
       q <- 
         tbl_mar(con, "biota.tegund_v") %>% 
-        dplyr::rename(sid = tegund_nr,
-                      heiti = tegund,
+        dplyr::select(sid = tegund_nr,
+                      tegund = heiti,
                       latin = visinda_heiti,
                       species = enskt_heiti,
                       dplyr::everything())
