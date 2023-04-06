@@ -9,7 +9,7 @@
 #  supersedes other sources ...
 #
 # The output: ops$einarhj.vessels_vessels
-# 2023-XX-DD: Update
+# 2023-04-06: Update, include last change in management class
 # 2023-01-09: First generation
 
 library(omar)
@@ -37,7 +37,7 @@ siglo <-
   vessel_registry(con) |> 
   collect(n = Inf) |> 
   arrange(vid) |> 
-  lh() 
+  lh()
 
 # Official registry - scraped from web -----------------------------------------
 scrape <-
@@ -264,12 +264,14 @@ d <-
 #  various checks indicate that it does not add much value
 d <- 
   d |> 
-  select(-t1) |> 
+  # select(-t1) |> 
   arrange(vid) |> 
-  select(vid:length, mclass, vclass, cs, imo, mmsi, everything())
+  select(vid:length, mclass, date_mclass = t1, vclass, cs, imo, mmsi, everything())
 
 names(d) <- toupper(names(d))
 d <- d |> arrange(VID)
+# problem with setting time zone, thus:
+d <- d |> mutate(DATE_MCLASS = as.character(DATE_MCLASS))
 if(SAVE) {
   DBI::dbWriteTable(con, name = "VESSELS", value = d, overwrite = TRUE)
 }
