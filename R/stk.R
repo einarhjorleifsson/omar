@@ -1,3 +1,28 @@
+stk_midvid <- function(con) {
+  tbl_mar(con, "ops$einarhj.mobile_vid")
+}
+
+stk_trail0 <- function(con, VIDs) {
+  
+  if(missing(VIDs)) {
+    q <- stk_midvid(con)
+  } else {
+    q <- 
+      stk_midvid(con) |> 
+      dplyr::filter(vid %in% VIDs) |> 
+      dplyr::select(vid, mid, t1, t2) |> 
+      dplyr::mutate(t1 = to_date(t1, "YYYY:MM:DD"),
+                    t2 = to_date(t2, "YYYY:MM:DD"))
+  }
+  
+  q |> 
+    dplyr::left_join(stk_trail(con),
+                     by = "mid") |> 
+    dplyr::filter(time >= t1 & time <= t2)
+  
+}
+
+
 #' The AIS/VMS trail
 #'
 #' @param con The connection
