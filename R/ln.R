@@ -1,3 +1,35 @@
+#' Landings (gafl)
+#'
+#' @param con oracle connection
+#' @param trim only return essential variables (default)
+#'
+#' @return
+#' @export
+#'
+ln_agf <- function(con, trim = TRUE) {
+  q <-
+    tbl_mar(con, "agf.aflagrunnur") |> 
+    dplyr::select(.id = londun_id,
+                  date = londun_hefst,
+                  hid = hafnarnumer,
+                  vid = skip_numer,
+                  gid = veidarfaeri,
+                  stock = veidistofn,
+                  sid = fisktegund,
+                  astand,
+                  wt = magn_oslaegt,
+                  gt = magn_slaegt,
+                  magn,
+                  dplyr::everything())
+  if(trim) {
+    q <-
+      q |> 
+      dplyr::select(.id:magn)
+  }
+  return(q)
+}
+
+
 #' landings (kvoti.lods_londun)
 #'
 #' @param con oracle connection
@@ -113,14 +145,14 @@ ln_1982_1993 <- function(con, standardize = TRUE) {
     
     q <- 
       q %>% 
-    dplyr::rename(gid = veidarfaeri,
-                  vid = skip_nr,
-                  sid = fteg,
-                  year = ar,
-                  month = man,
-                  hid = hofn,
-                  catch = magn_oslaegt,
-                  area = veidisvaedi) 
+      dplyr::rename(gid = veidarfaeri,
+                    vid = skip_nr,
+                    sid = fteg,
+                    year = ar,
+                    month = man,
+                    hid = hofn,
+                    catch = magn_oslaegt,
+                    area = veidisvaedi) 
   }
   
   return(q)

@@ -9,13 +9,13 @@ stk_trail0 <- function(con, VIDs) {
   } else {
     q <- 
       stk_midvid(con) |> 
-      dplyr::filter(vid %in% VIDs) |> 
-      dplyr::select(vid, mid, t1, t2) |> 
-      dplyr::mutate(t1 = to_date(t1, "YYYY:MM:DD"),
-                    t2 = to_date(t2, "YYYY:MM:DD"))
+      dplyr::filter(vid %in% VIDs)
   }
   
   q |> 
+    dplyr::select(vid, mid, t1, t2) |> 
+    dplyr::mutate(t1 = to_date(t1, "YYYY:MM:DD"),
+                  t2 = to_date(t2, "YYYY:MM:DD")) |> 
     dplyr::left_join(stk_trail(con),
                      by = "mid") |> 
     dplyr::filter(time >= t1 & time <= t2)

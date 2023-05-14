@@ -8,7 +8,7 @@
 # The approach used here is that information ...  describe here what source
 #  supersedes other sources ...
 #
-# The output: ops$einarhj.vessels_vessels
+# The output: ops$einarhj.vessels
 # 2023-04-06: Update, include last change in management class
 # 2023-01-09: First generation
 
