@@ -174,7 +174,7 @@ lb_static <- function(con, correct_gear = TRUE, trim = TRUE) {
                                             gid2 == 3 ~ as.numeric(faeri * klst)),
                   effort_unit = dplyr::case_when(gid2 == 1 ~ "hooks",
                                                  gid2 == 2 ~ "netnights",
-                                                 gid2 == 3 ~ "hookours")) %>%
+                                                 gid2 == 3 ~ "hookhours")) %>%
     dplyr::select(visir, vid, gid, year:hid,
                   effort,
                   effort_unit,
@@ -201,6 +201,88 @@ lb_static <- function(con, correct_gear = TRUE, trim = TRUE) {
   return(q)
   
 }
+
+
+#' Logbook traps
+#'
+#' @param con Oracle connection
+#' @param correct_gear a boolean (default TRUE) checks for lookup-table for
+#' gear correction (adds variable "gidc" to the tibble)
+#' @param trim trim variables returned (default TRUE)
+#' 
+#' @return A sql tibble
+#' @export
+#' 
+lb_trap <- function(con, correct_gear = TRUE, trim = TRUE) {
+  
+  q <- 
+    lb_base(con, correct_gear = correct_gear) %>% 
+    dplyr::inner_join(tbl_mar(con, "afli.gildra"),
+                      by = "visir")
+  
+  q <-
+    q %>% 
+    dplyr::mutate(effort = gildrur * klst,
+                  effort_unit = "traphours") %>%
+    dplyr::select(visir, vid, gid, year:hid,
+                  effort,
+                  effort_unit,
+                  dplyr::everything())
+  
+  if(trim) {
+    q <-
+      q %>% 
+      dplyr::select(visir:effort_unit)
+  }
+  
+  return(q)
+  
+}
+
+
+#' Logbook pelagic seines
+#'
+#' @param con Oracle connection
+#' @param correct_gear a boolean (default TRUE) checks for lookup-table for
+#' gear correction (adds variable "gidc" to the tibble)
+#' @param trim trim variables returned (default TRUE)
+#' 
+#' @return A sql tibble
+#' @export
+#' 
+lb_seine <- function(con, correct_gear = TRUE, trim = TRUE) {
+  
+  q <- 
+    lb_base(con, correct_gear = correct_gear) %>% 
+    dplyr::inner_join(tbl_mar(con, "afli.hringn"),
+                      by = "visir")
+  
+  q <-
+    q %>% 
+    dplyr::mutate(effort =  1,
+                  effort_unit = "setting") |> 
+    dplyr::mutate(on.bottom = lpad(klukkan, 4, "0")) %>%
+    # vedags + (substr(lpad(ibotni,4,'0'),1,2)*60+substr(lpad(ibotni,4,'0'),3,2))/24/60 t1
+    # Oracle time is in days
+    dplyr::mutate(t1 = date + (substr(on.bottom, 1, 2) * 60 + substr(on.bottom, 3, 4)) / (24 * 60)) %>% 
+    dplyr::select(visir, vid, gid, year:hid, 
+                  effort,
+                  effort_unit,
+                  mesh = moskvi,
+                  t1, 
+                  dplyr::everything())
+  
+  if(trim) {
+    q <-
+      q %>% 
+      dplyr::select(visir:t1)
+  }
+  
+  return(q)
+  
+}
+
+
 
 lb_std_meshsize <- function(d) {
   d %>%
