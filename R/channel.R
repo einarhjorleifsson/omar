@@ -82,4 +82,35 @@ ch_sample <- function(con, std = TRUE, trim = TRUE) {
   
 }
 
-
+#' Sample class
+#'
+#' Reads channel.sample_category
+#' 
+#' @param con oracle connection
+#' @param std create standardized/shortcut names (default is TRUE)
+#' @param trim trim return only key variables (default is TRUE). only operational
+#' if std is TRUE
+#'
+#' @return a tibble query
+#' @export
+#'
+ch_sample_class <- function(con, std = TRUE, trim = TRUE) {
+  
+  q <- tbl_mar(con, "channel.sample_category") 
+  
+  if(std) {
+    q <-
+      q |> 
+      dplyr::select(sclass = sample_category_no,
+                  sample_class = eng_descr,
+                  synaflokkur = descr,
+                  dplyr::everything())
+    if(trim) {
+      q <-
+        q |> 
+        dplyr::select(sclass:synaflokkur)
+    }
+  }
+  
+  return(q)
+}

@@ -1,20 +1,20 @@
-lb_trip_new <- function(con) {
+adb_trip <- function(con) {
   tbl_mar(con, "adb.trip_v") |> 
     dplyr::filter(departure >= to_date("2020-01-01", "YYYY:MM:DD")) |> 
-    dplyr::select(tid = trip_id,
+    dplyr::select(trip_id,
                   vid = vessel_no,
-                  T1 = departure,
+                  d1 = departure,
                   hid1 = departure_port_no,
-                  T2 = landing,
+                  d2 = landing,
                   hid2 = landing_port_no,
                   source)
 }
 
 
-lb_station_new <- function(con) {
+adb_station <- function(con) {
   tbl_mar(con, "adb.station_v") |> 
-    dplyr::select(tid = trip_id,
-                  visir = station_id,
+    dplyr::select(trip_id,
+                  station_id,
                   gid = gear_no,
                   t1 = fishing_start,
                   t2 = fishing_end,
@@ -24,7 +24,6 @@ lb_station_new <- function(con) {
                   lat2 = latitude_end,
                   z1 = depth,
                   z2 = depth_end)
-  
 }
 
 
@@ -35,9 +34,11 @@ lb_station_new <- function(con) {
 #' @return a query
 #' @export
 #'
+
 lb_base_new <- function(con) {
-  lb_trip_new(con) |> 
-    dplyr::left_join(lb_station_new(con))
+  adb_trip(con) |> 
+    dplyr::left_join(adb_station(con),
+                     by = "trip_id")
 }
 
 #' Logbook catch by species
@@ -49,76 +50,104 @@ lb_base_new <- function(con) {
 #'
 lb_catch_new <- function(con) {
   q <-
-    tbl_mar(con, "adb.catch_v")
+    tbl_mar(con, "adb.catch_v") |> 
+    dplyr::mutate(catch = dplyr::case_when(condition == "GUTT" ~ quantity / 0.8,
+                                           condition == "UNGU" ~ quantity,
+                                           .default = NA)) |> 
     dplyr::select(station_id,
                   sid = species_no,
-                  catch = weight)
+                  catch)
+  
   return(q)
 }
 
-#' Logbook mobile (active) gear
+#' Logbook new - trawl and seine
 #'
 #' @param con oracle connection
-#' @param correct_gear a boolean (default TRUE) checks for lookup-table for
-#' gear correction (adds variable "gidc" to the tibble)
 #' @param trim trim variables returned (default TRUE)
 #'
 #' @return a sql tibble
 #' @export
 
-lb_mobile_new <- function(con, standaridize = TRUE) {
+lb_mobile_new <- function(con, trim = TRUE) {
+  
+  # name of function a misnomer
   
   q <- 
-    tbl_mar(con, "adb.trawl_and_seine_net_v")
-  q |> glimpse()
-  
-  q <- 
-    lb_base_() %>% 
-    dplyr::inner_join(tbl_mar(con, "afli.toga"),
-                      by = "visir")
-  
-  q <-
-    q %>% 
-    dplyr::rename(towtime = togtimi,
-                  on.bottom = ibotni) %>%
-    dplyr::mutate(effort = dplyr::case_when(gid2 %in% c(6, 7, 15) ~ towtime / 60,
-                                            # for seine and traps use setting as effort
-                                            gid2 %in% c(5, 17) ~ 1,
-                                            TRUE ~ NA_real_),
-                  effort_unit = dplyr::case_when(gid2 %in% c(6, 7, 9, 14, 15, 38, 40) ~ "hours towed",
-                                                 # for seine just use the setting
-                                                 gid2 %in% c(5, 17) ~ "setting",
-                                                 TRUE ~ NA_character_)) %>%
-    dplyr::mutate(on.bottom = lpad(on.bottom, 4, "0")) %>%
-    # vedags + (substr(lpad(ibotni,4,'0'),1,2)*60+substr(lpad(ibotni,4,'0'),3,2))/24/60 t1
-    # Oracle time is in days
-    dplyr::mutate(t1 = date + (substr(on.bottom, 1, 2) * 60 + substr(on.bottom, 3, 4)) / (24 * 60),
-                  t2 = date + (substr(on.bottom, 1, 2) * 60 + substr(on.bottom, 3, 4) + towtime) / (24 * 60)) %>% 
-    dplyr::select(visir, vid, gid, year:hid, 
-                  towtime,                     # in minutes
+    lb_base_new(con) %>% 
+    # the only gears that are supposed to be in mobile (9 and 14 not there yet)
+    filter(gid %in% c(5, 6, 7, 9, 14)) |> 
+    dplyr::left_join(tbl_mar(con, "adb.trawl_and_seine_net_v") |> 
+                       dplyr::mutate(child = "yes"),
+                     by = "station_id") |> 
+    dplyr::mutate(effort = dplyr::case_when(gid == 5 ~ 1,
+                                            .default = (t2 - t1) * 24),
+                  child = ifelse(is.na(child), "no", child)) |> 
+    dplyr::select(station_id, 
+                  vid,
+                  gid:z2,
                   effort,
-                  effort_unit,
-                  mesh = moskvi,
-                  mesh_min = moskvi_minnsti,
-                  doors = hlerar,              # in kilograms
-                  headline = hoflina,
-                  sweeps = grandarar,          # in meters ???
-                  plow_width = pl_breidd,
-                  tempb1 = botnhiti,           # bottom temperature
-                  tempb2 = botnhiti_lok,
-                  temps1 = uppsj_hiti,         # surface temperature
-                  temps2 = uppsj_hiti_lok,
-                  t1, 
-                  t2,
-                  on.bottom,
+                  mesh = mesh_size,
+                  doors = otterboard_weight,              # in kilograms
+                  headline = headline_length,
+                  sweeps = bridle_length,          # in meters ??
                   dplyr::everything())
   
   if(trim) {
     q <-
       q %>% 
-      dplyr::select(visir:on.bottom)
+      # should possibly only return station_id:effort as standard
+      dplyr::select(station_id:sweeps, source)
+  }
+  
+  return(q)
+  
+}
+
+#' Logbook new - trawl and seine
+#'
+#' @param con oracle connection
+#' @param trim trim variables returned (default TRUE)
+#'
+#' @return a sql tibble
+#' @export
+
+lb_static_new <- function(con, trim = TRUE) {
+  
+  q <- 
+    lb_base_new(con) %>% 
+    dplyr::filter(gid %in% c(1, 2, 3, 
+                             11,        # reknet 
+                             25,        # grasleppunet
+                             29,        # rauðmaganet
+                             91,        # skötuselsnet
+                             92)) |>    # graludunet
+    dplyr::left_join(tbl_mar(con, "adb.line_and_net_v"),
+                     by = "station_id") |> 
+    dplyr::mutate(effort = 
+                    dplyr::case_when(gid %in% c(1) ~ hooks,                            
+                                     gid %in% c(2, 11, 25, 29, 91, 92) ~ nets,     # should really be netnights
+                                     gid %in% c(3) ~ 4,  # 4 "faeri" - should really be hookhours
+                                     .default = NA)) |> 
+    dplyr::select(station_id, 
+                  vid,
+                  gid:z2,
+                  effort,
+                  mesh = mesh_size,
+                  dplyr::everything())
+  
+  if(trim) {
+    q <-
+      q %>% 
+      dplyr::select(station_id:effort, source = source)
   }
   
   return(q)
 }
 
+lb_dredge_new <- function(con) {
+  q <- 
+    lb_base_new(con) %>% 
+    dplyr::inner_join(tbl_mar(con, "adb.dredge_v"),
+                      by = "station_id")
+}
