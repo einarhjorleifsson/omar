@@ -34,6 +34,7 @@ voc_channel <-
                  "sample_class", "eng_descr",
                  "synaflokkur",  "descr")
 
+<<<<<<< HEAD
 # biota ------------------------------------------------------------------------
 voc_biota <- 
   #              note order
@@ -55,7 +56,7 @@ voc_biota <-
                  "liver",  "lifur",
                  "gonads", "kynfaeri",
                  "rate",   "hlutfall")
-                 
+
 
 # vessel -----------------------------------------------------------------------
 voc_vessel <- 
@@ -71,6 +72,7 @@ vocabulary <-
             voc_biota,
             voc_vessel) |> 
   distinct()
+
 vocabulary <- 
   stats::setNames(object = vocabulary$mar, 
                   nm = vocabulary$omar)
