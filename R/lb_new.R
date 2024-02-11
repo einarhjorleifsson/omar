@@ -76,7 +76,7 @@ lb_mobile_new <- function(con, trim = TRUE) {
   q <- 
     lb_base_new(con) %>% 
     # the only gears that are supposed to be in mobile (9 and 14 not there yet)
-    filter(gid %in% c(5, 6, 7, 9, 14)) |> 
+    dplyr::filter(gid %in% c(5, 6, 7, 9, 14)) |> 
     dplyr::left_join(tbl_mar(con, "adb.trawl_and_seine_net_v") |> 
                        dplyr::mutate(child = "yes"),
                      by = "station_id") |> 

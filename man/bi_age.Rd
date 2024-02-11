@@ -4,15 +4,12 @@
 \alias{bi_age}
 \title{by_age}
 \usage{
-bi_age(con, std = TRUE, trim = TRUE)
+bi_age(con, std = TRUE)
 }
 \arguments{
 \item{con}{oracle connection}
 
 \item{std}{create standardized/shortcut names (default is TRUE)}
-
-\item{trim}{trim return only key variables (default is TRUE). only operational
-if std is TRUE}
 }
 \value{
 a tibble query

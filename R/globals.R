@@ -48,4 +48,6 @@ utils::globalVariables(
     "veidisvaedi", "vel_kw", "vessel", "vessel_csprefix", "vessel_mid", "vessel_no",
     "vesselclass", "vesselname", "vid", "vid2", "vid_mmsi", "vindatt", "vindstig",
     "vinnsluhofn", "visinda_heiti", "visir", "vlengd", "vocabulary", "weight", "width_reg",
-    "year", "yfirbordshiti", "z2"))
+    "year", "yfirbordshiti", "z2",
+    "column_name", "count", "nvl", "sql", "to_char", "to_date", "to_number", "view_name",
+    "."))

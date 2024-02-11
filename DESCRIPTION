@@ -18,6 +18,7 @@ Imports:
     dbplyr,
     dplyr,
     magrittr,
+    mapdeck,
     purrr,
     ramb,
     ROracle,

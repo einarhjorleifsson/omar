@@ -29,26 +29,15 @@
 #'
 bi_len <- function(con, std = TRUE, trim = TRUE, weights = TRUE) {
   q <-
-    tbl_mar(con, "biota.lengd_skalad_v")
+    tbl_mar(con, "biota.lengd_skalad_v") |> 
+    dplyr::mutate(r_talid = nvl(r_talid, 1))
   
   if(std) {
     q <- 
-      q %>% 
-      dplyr::rename(.id = synis_id,
-                    sid = tegund_nr,
-                    length = lengd,
-                    sex = kyn_nr,
-                    mat = kynthroski_nr,
-                    age = aldur,
-                    n = fjoldi,
-                    rn = r_talid) %>% 
-      dplyr::mutate(rn = nvl(rn, 1)) # %>% 
-    # dplyr::left_join(sid_lwcoeffs(con),
-    #                  by = "sid") %>% 
-    # dplyr::mutate(a  = ifelse(is.na(a), 0.01, a),
-    #               b  = ifelse(is.na(b), 3.00, b),
-    #               wt = (a * length^b) / 1e3, .after = length) %>% 
-    # dplyr::select(-c(a, b))
+      q |> 
+      dplyr::rename(dplyr::any_of(vocabulary))
+      
+    
     if(trim) {
       q <-
         q %>% 
@@ -88,34 +77,36 @@ bi_lwcoeffs <- function(con) {
 #' 
 #' @param con oracle connection
 #' @param std create standardized/shortcut names (default is TRUE)
-#' @param trim trim return only key variables (default is TRUE). only operational
-#' if std is TRUE
 #'
 #' @return a tibble query
 #' @export
 #'
-bi_age <- function(con, std = TRUE, trim = TRUE) {
+bi_age <- function(con, std = TRUE) {
   
-  q <- tbl_mar(con, "biota.aldur_v")
+  q <- 
+    tbl_mar(con, "biota.aldur_v") |> 
+    dplyr::select(maeling_id,
+                  synis_id,
+                  tegund_nr,
+                  lengd,
+                  kyn_nr,
+                  kynthroski_nr,
+                  aldur, 
+                  fjoldi,
+                  kvarna_nr,
+                  thyngd,
+                  slaegt,
+                  magi,
+                  lifur,
+                  kynfaeri,
+                  hlutfall,
+                  dplyr::everything())
   
   if(std) {
     q <- 
       q %>% 
-      dplyr::select(.mid = maeling_id,
-                    .id = synis_id,
-                    sid = tegund_nr,
-                    length = lengd,
-                    sex = kyn_nr,
-                    mat = kynthroski_nr,
-                    age = aldur, 
-                    n = fjoldi,
-                    knr = kvarna_nr,
-                    wt = thyngd,
-                    gwt = slaegt,
-                    stomach = magi,
-                    liver = lifur,
-                    gonads = kynfaeri,
-                    rate = hlutfall)
+      dplyr::rename(dplyr::any_of(vocabulary))
+      
   }
   
   return(q)
