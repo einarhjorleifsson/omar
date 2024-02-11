@@ -9,9 +9,9 @@ ch_station(con, std = TRUE, trim = TRUE)
 \arguments{
 \item{con}{oracle connection}
 
-\item{std}{create standardized/shortcut names (default is TRUE)}
+\item{std}{boolean (default TRUE), create standardized/shortcut names}
 
-\item{trim}{trim return only key variables (default is TRUE). only operational
+\item{trim}{boolean (default TRUE), return only key variables. only operational
 if std is TRUE}
 }
 \value{
