@@ -63,12 +63,12 @@ vessel_registry <- function(con, standardize = TRUE, trim = TRUE) {
                     power_index = aflvisir,
                     dplyr::everything()) %>%
       # Need to double check ghost ships
-      dplyr::mutate(vessel = str_trim(vessel),
-                    uid = str_trim(uid),
-                    uno = str_sub(uid, 3),
+      dplyr::mutate(vessel = stringr::str_trim(vessel),
+                    uid = stringr::str_trim(uid),
+                    uno = stringr::str_sub(uid, 3),
                     uno = ifelse(uno %in% c("0", "00", "000", "."), NA, uno),
                     uno = as.numeric(uno),
-                    uid = str_sub(uid, 1, 2),
+                    uid = stringr::str_sub(uid, 1, 2),
                     uid = dplyr::case_when(uid == "IS" ~ "ÍS",
                                            uid == "OF" ~ "ÓF",
                                            uid == "KÓ" ~ "KO",
@@ -76,7 +76,7 @@ vessel_registry <- function(con, standardize = TRUE, trim = TRUE) {
                     length = dplyr::case_when(vid == 9928 ~ 5,
                                               length == 0 ~ NA,
                                               TRUE ~ length / 100),
-                    length_reg = case_when(length_reg == 0 ~ NA,
+                    length_reg = dplyr::case_when(length_reg == 0 ~ NA,
                                            TRUE ~ length_reg / 100),
                     gv = dplyr::case_when(vid == 2780 ~ gv / 100000,
                                           vid == 9928 ~ 2,
@@ -91,7 +91,7 @@ vessel_registry <- function(con, standardize = TRUE, trim = TRUE) {
                                                  TRUE ~ width_reg / 100),
                     depth_reg = dplyr::case_when(depth_reg == 0 ~ NA,
                                                  TRUE ~ depth_reg / 100),
-                    cs = dplyr::case_when(nchar(cs) == 4 & str_sub(cs, 1, 2) == "TF" ~ cs,
+                    cs = dplyr::case_when(nchar(cs) == 4 & stringr::str_sub(cs, 1, 2) == "TF" ~ cs,
                                           TRUE ~ NA_character_),
                     imo = ifelse(imo == 0, NA_integer_, imo),
                     #                     Blidfari has abnormal engine_kw, divided by 100
@@ -100,7 +100,7 @@ vessel_registry <- function(con, standardize = TRUE, trim = TRUE) {
                     engine_kw = ifelse(engine_kw == 0, NA, engine_kw),
                     power_index = ifelse(power_index == 0, NA, power_index),
                     propeller_diameter = ifelse(propeller_diameter == 0, NA, propeller_diameter),
-                    port = str_trim(port),
+                    port = stringr::str_trim(port),
                     length_class = dplyr::case_when(length < 8 ~ "<8",
                                                     length >= 8  & length < 10 ~ "08-10",
                                                     length >= 10 & length < 12 ~ "10-12",
@@ -171,29 +171,29 @@ vessel_history <- function(con, trim = TRUE) {
                   comment = aths,
                   clarification = skyring,
                   dplyr::everything()) |> 
-    dplyr::mutate(foreign = case_when(between(vid, 3700, 4999) ~ 1,
-                               TRUE ~ 0),
-           length = ifelse(length <= 1, NA, length),
-           length_reg = ifelse(length_reg <= 1, NA, length_reg),
-           width_reg = ifelse(width_reg <= 0, NA, width_reg),
-           depth_reg = ifelse(depth_reg <= 0, NA, depth_reg),
-           # foreign vessels
-           uno = ifelse(foreign == 1, NA, uno),
-           uid = ifelse(uid %in% c("??", "X") & foreign == 1, NA, uid),
-           uid = str_to_upper(uid),
-           uid = case_when(uid == "UK" & foreign == 1 ~ "GB", 
-                           uid == "PO" & foreign == 1 ~ "PL",
-                           TRUE ~ uid),
-           gv = ifelse(gv == 0 |
-                         (gv < 1.0001 & is.na(length)) |
-                         (gv < 1.0001 & length > 15),
-                       NA_real_,
-                       gv),
-           gt = ifelse(gt == 0 |
-                         (gt < 1.0001 & is.na(length)) |
-                         (gt < 1.0001 & length > 15),
-                       NA_real_,
-                       gt))
+    dplyr::mutate(foreign = dplyr::case_when(between(vid, 3700, 4999) ~ 1,
+                                             TRUE ~ 0),
+                  length = ifelse(length <= 1, NA, length),
+                  length_reg = ifelse(length_reg <= 1, NA, length_reg),
+                  width_reg = ifelse(width_reg <= 0, NA, width_reg),
+                  depth_reg = ifelse(depth_reg <= 0, NA, depth_reg),
+                  # foreign vessels
+                  uno = ifelse(foreign == 1, NA, uno),
+                  uid = ifelse(uid %in% c("??", "X") & foreign == 1, NA, uid),
+                  uid = stringr::str_to_upper(uid),
+                  uid = dplyr::case_when(uid == "UK" & foreign == 1 ~ "GB", 
+                                         uid == "PO" & foreign == 1 ~ "PL",
+                                         TRUE ~ uid),
+                  gv = ifelse(gv == 0 |
+                                (gv < 1.0001 & is.na(length)) |
+                                (gv < 1.0001 & length > 15),
+                              NA_real_,
+                              gv),
+                  gt = ifelse(gt == 0 |
+                                (gt < 1.0001 & is.na(length)) |
+                                (gt < 1.0001 & length > 15),
+                              NA_real_,
+                              gt))
   
   if(trim) {
     q <- q |> dplyr::select(vid:t2, foreign)
@@ -304,7 +304,7 @@ vessel_class <- function(con) {
 #' @export
 #'
 vessel_valid_imo <- function(x) {
-  lh <- function(x, n) { str_sub(x, n, n) %>% as.integer() }
+  lh <- function(x, n) { stringr::str_sub(x, n, n) %>% as.integer() }
   #if(nchar(x) != 7) return(FALSE)
   x2 <- 
     lh(x, 1) * 7 +
@@ -313,7 +313,7 @@ vessel_valid_imo <- function(x) {
     lh(x, 4) * 4 +
     lh(x, 5) * 3 +
     lh(x, 6) * 2
-  return(str_sub(x2, nchar(x2)) == str_sub(x, nchar(x)))
+  return(stringr::str_sub(x2, nchar(x2)) == stringr::str_sub(x, nchar(x)))
 }
 
 

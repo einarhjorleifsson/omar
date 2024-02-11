@@ -45,7 +45,7 @@ gid_orri_plus <- function(con) {
                   gid_fi = fi_veidarfaeri,
                   gid_lods = lods_veidarfaeri,
                   isscfg, 
-                  everything())
+                  dplyr::everything())
 }
 
 #' orri.veidarfaeri
