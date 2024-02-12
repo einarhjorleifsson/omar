@@ -43,19 +43,27 @@ if(SAVE) {
 ## Icelandic MMSI registry -----------------------------------------------------
 
 ### Most recent ----------------------------------------------------------------
-# 2023-01-15
+# 2024-02-12
+
+# Make a database copy of the existing one
+library(omar)
+con <- connect_mar()
+old <- tbl_mar(con, "ops$einarhj.MMSI_ICELANDIC_REGISTRY") |> collect(n = Inf)
+colnames(old) <- toupper(colnames(old))
+DBI::dbWriteTable(con, name = "MMSI_ICELANDIC_REGISTRY_20230115", value = old, overwrite = FALSE)
+
 # https://www.fjarskiptastofa.is/english/telecom-affairs/maritime-communications
 # "In the following registers information can be found about numbers that have 
 #  been allocated to Icelandic ships: MMSI (DSC and 406 MHz emergency beacons), 
 #  INMARSAT Standard A, Standard B, Standard C and Standard M and 
 #  Selcall (Radiotelex).
-#   Updated November 17th 2022."
-pth <- "https://www.fjarskiptastofa.is/library?itemid=1e46976b-5fed-4431-94dc-7c15f69fb54c"
-download.file(pth, destfile = "data-raw/downloads/mmsi_updated_2022-11-17.xlsx")
+#   Updated January 22nd 2024.
+pth <- "https://www.fjarskiptastofa.is/library?itemid=74bcc593-abd1-460b-b389-f7b86ac34cfb"
+download.file(pth, destfile = "data-raw/downloads/mmsi_updated_2024-01-22.xlsx")
 v_mmsi <-
-  readxl::read_excel("data-raw/downloads/mmsi_updated_2022-11-17.xlsx") %>%
+  readxl::read_excel("data-raw/downloads/mmsi_updated_2024-01-22.xlsx") %>%
   janitor::clean_names() %>%
-  dplyr::rename(ACTIVE = x5) |> 
+  dplyr::rename(ACTIVE = ja_nei) |> 
   dplyr::mutate(ACTIVE = ifelse(ACTIVE == "0", "No", "Yes")) |> 
   dplyr::select(SKNR = sknr,
                 NAME = skip,
@@ -79,7 +87,8 @@ vlookup <- function(this, df, key, value) {
   m <- match(this, df[[key]])
   df[[value]][m]
 }
-old <- tbl_mar(con, "ops$einarhj.VESSEL_MMSI_20190627") |> collect(n = Inf)
+# the one just preserved above
+old <- tbl_mar(con, "ops$einarhj.MMSI_ICELANDIC_REGISTRY_20230115") |> collect(n = Inf)
 
 vid.not.in.new <- 
   bind_rows(v_mmsi |> filter(!is.na(vid)) |> select(sknr:cs) |> mutate(source = "new"),
@@ -137,43 +146,4 @@ if(SAVE) {
   con <- omar::connect_mar()
   DBI::dbWriteTable(con, name = "MMSI_ICELANDIC_REGISTRY", value = d, overwrite = TRUE)
 }
-
-### Historical stuff -----------------------------------------------------------
-# pth <- "https://www.pfs.is/library/Skrar/Tidnir-og-taekni/Numeramal/MMSI/NUMER%20Query270619.xlsx"
-# download.file(pth, destfile = "data-raw/ss-270619_mmsi.xlsx")
-# v_mmsi <-
-#   readxl::read_excel("data-raw/ss-270619_mmsi.xlsx") %>%
-#   janitor::clean_names() %>%
-#   dplyr::select(SKNR = sknr,
-#                 NAME = skip,
-#                 CS = kallm,
-#                 MMSI = mmsi_nr,
-#                 STDC = standard_c) %>%
-#   dplyr::mutate(VID = case_when(str_sub(MMSI, 1, 3) == "251" ~ as.integer(SKNR),
-#                                 TRUE ~ NA_integer_),
-#                 VID2 = case_when(str_sub(MMSI, 1, 3) != "251" ~ as.integer(SKNR),
-#                                  TRUE ~ NA_integer_)) %>%
-#   dplyr::select(SKNR, VID, VID2, NAME, MMSI, CS) %>%
-#   dplyr::arrange(VID)
-# dbWriteTable(con, name = "VESSEL_MMSI_20190627", value = v_mmsi, overwrite = TRUE)
-
-# # updated table 2021-01-06
-# pth <- "https://www.pfs.is/library/Skrar/Tidnir-og-taekni/Numeramal/MMSI/NUMER%20Query151220.xlsx"
-# download.file(pth, destfile = "tmp.xlsx")
-# v_mmsi <-
-#   readxl::read_excel("tmp.xlsx") %>%
-#   janitor::clean_names() %>%
-#   dplyr::select(SKNR = sknr,
-#                 NAME = skip,
-#                 CS = kallm,
-#                 MMSI = mmsi_nr,
-#                 STDC = standard_c) %>%
-#   dplyr::mutate(VID = dplyr::case_when(stringr::str_sub(MMSI, 1, 3) == "251" ~ as.integer(SKNR),
-#                                        TRUE ~ NA_integer_),
-#                 VID2 = dplyr::case_when(stringr::str_sub(MMSI, 1, 3) != "251" ~ as.integer(SKNR),
-#                                         TRUE ~ NA_integer_)) %>%
-#   dplyr::select(SKNR, VID, VID2, NAME, MMSI, CS) %>%
-#   dplyr::arrange(VID)
-# DBI::dbWriteTable(con, name = "VESSEL_MMSI_20201215", value = v_mmsi)
-
 
