@@ -15,6 +15,7 @@ mid <-
   mid[[1]] %>%
   as_tibble() %>%
   rename(country = Country) %>%
+  mutate(Codes = ifelse(str_starts(country, "Germ"), "211; 218", Codes)) |> 
   separate(col = "Codes", into = paste0("c", 1:20)) %>%
   gather(dummy, mid, -country) %>%
   drop_na() %>%
@@ -34,8 +35,11 @@ mmsi_MID <-
                              country == "Saint Paul and Amsterdam Islands" ~ "France",
                              TRUE ~ country)) %>% 
   mutate(flag = countrycode(country, "country.name", "iso3c")) %>%
-  select(MID = mid, FLAG = flag)
+  select(MID = mid, FLAG = flag) |> 
+  mutate(MID = as.integer(MID))
 
+library(omar)
+con <- connect_mar()
 if(SAVE) {
   DBI::dbWriteTable(con, name = "MMSI_MID", value = mmsi_MID, overwrite = TRUE)
 }
@@ -46,8 +50,6 @@ if(SAVE) {
 # 2024-02-12
 
 # Make a database copy of the existing one
-library(omar)
-con <- connect_mar()
 old <- tbl_mar(con, "ops$einarhj.MMSI_ICELANDIC_REGISTRY") |> collect(n = Inf)
 colnames(old) <- toupper(colnames(old))
 DBI::dbWriteTable(con, name = "MMSI_ICELANDIC_REGISTRY_20230115", value = old, overwrite = FALSE)
