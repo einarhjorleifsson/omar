@@ -4,6 +4,7 @@ con <- connect_mar()
 
 
 # HISTORY ----------------------------------------------------------------------
+# 2024-02-12: Use the new vessel database
 # 2023-05-09: Added 
 #          Ghandi (mid = 103015, vid == 2702)
 #          Haberg (mid = 101083, vid = 2654)
@@ -16,10 +17,17 @@ con <- connect_mar()
 
 # NOTES: mid 
 
+## Make a copy of older oracle data-file ---------------------------------------
+d <- 
+  tbl_mar(con, "ops$einarhj.mobile_vid") |> 
+  collect()
+names(d) <- toupper(names(d))
+DBI::dbWriteTable(con, name = "MOBILE_VID_20240212", value = d, overwrite = FALSE)
+
 ## Vessels ---------------------------------------------------------------------
 #   User the mother of all vessel information
 vid <-
-  omar::vessels_vessels(con) |>
+  omar::vessel(con) |>
   collect(n = Inf) |>
   filter(!vid %in% c(9999)) |>
   # ignore foreign vessels
@@ -29,11 +37,10 @@ vid <-
                            .default = NA),
          uid = case_when(!is.na(uid) & !is.na(uno_c) ~ paste0(uid, uno_c),
                          .default = NA)) |>
-  select(vid:uid, cs, mclass, date_mclass, vclass, imo, mmsi, length) |>
+  select(vid:uid, cs, mclass, imo, mmsi, length) |>
   # this should be fixed upstream
   mutate(cs = case_when(vid ==  2730 ~ "TFCR",
-                        .default = cs),
-         date_mclass = as_date(date_mclass)) |>
+                        .default = cs)) |>
   arrange(vid)
 
 ## stk.summary -----------------------------------------------------------------
@@ -83,8 +90,8 @@ if(FALSE) {
   identical(stk_summary$mid, stk_summary2$mid)
   identical(stk_summary$pings, stk_summary2$pings) # difference just due to timing
   identical(stk_summary$n_years, stk_summary2$n_years)
-  identical(stk_summary$t1, stk_summary2$t1)
-  identical(stk_summary$t2, stk_summary2$t2)
+  identical(stk_summary$t1_org, stk_summary2$t1)
+  identical(stk_summary$t2_org, stk_summary2$t2)
 }
 ## Mapping vessels by localid and globalid -------------------------------------
 ### mapping of stk.mobile ------------------------------------------------------
@@ -386,9 +393,9 @@ MOBILE_VID |> glimpse()
 
 
 # to oracle --------------------------------------------------------------------
-if(TRUE) {
+if(FALSE) {
   names(MOBILE_VID) <- toupper(names(MOBILE_VID))
-  DBI::dbWriteTable(con, name = "MOBILE_VID", value = MOBILE_VID, overwrite = TRUE)
+  DBI::dbWriteTable(con, name = "MOBILE_VID", value = MOBILE_VID, overwrite = FALSE)
   # DBI::dbExecute(con, 'GRANT select on "MOBILE_VID" to public')
   tbl_mar(con, "ops$einarhj.mobile_vid") |> glimpse()
 }
