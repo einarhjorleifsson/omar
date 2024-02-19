@@ -5,11 +5,12 @@
 #' The new vessel stuff
 #'
 #' @param con oracle connection
+#' @param fix Fix typos, boolean (default TRUE)
 #'
 #' @return a query
 #' @export
-vessel <- function(con) {
-
+vessel <- function(con, fix = TRUE) {
+  
   q <-
     tbl_mar(con, "vessel.vessel") |>
     dplyr::select(vid = registration_no,
@@ -39,10 +40,21 @@ vessel <- function(con) {
                   width_reg,
                   depth_reg,
                   port)
-                  #propeller_diameter)
-
+  
+  if(fix) {
+    q <- 
+      q |> 
+      dplyr::mutate(cs = dplyr::case_when(vid ==  2730 & cs == "TFQF" ~ "TFCR",
+                                          .default = cs),
+                    # fiskistofa typo
+                    vessel = ifelse(vessel == "Tuugaalik )OZBW)",
+                                    "Tuugaalik (OZBW)",
+                                    vessel))
+  }
+  
+  
   return(q)
-
+  
 }
 
 
@@ -84,26 +96,4 @@ v_measurements <- function(con) {
   return(q)
   
 }
-    
-# tbl_mar(con, "vessel.vessel_operational") |> collect() |> count(operational_category)
-# tbl_mar(con, "vessel.vessel_fishery") |> glimpse()
-# tbl_mar(con, "vessel.vessel_engines") |> glimpse()
-# tbl_mar(con, "vessel.vessel_owners") |> glimpse()
 
-# 
-# 
-# vessel_hist_v <- function(con) {
-#   d <-
-#     tbl_mar(con,"vessel.vessel_hist_v")
-#   return(d)
-# }
-
-# v <- vessel_hist_v(con)
-# v |> glimpse()
-# 
-
-
-# # support tables
-# tbl_mar(con, "vessel.region") |> glimpse()
-# tbl_mar(con, "vessel.usage_category") |> glimpse()
-# tbl_mar(con, "vessel.vessel_operational") |> glimpse()
