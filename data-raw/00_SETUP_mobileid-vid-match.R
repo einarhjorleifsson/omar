@@ -37,8 +37,8 @@ vid <-
                            .default = NA),
          uid = case_when(!is.na(uid) & !is.na(uno_c) ~ paste0(uid, uno_c),
                          .default = NA)) |>
-  select(vid:uid, cs, mclass, imo, mmsi, length) |>
-  # this should be fixed upstream
+  select(vid:uid, cs, mclass, imo, mmsi, length) |> 
+  # this should be fixed upstream - GULLBERG VE292
   mutate(cs = case_when(vid ==  2730 ~ "TFCR",
                         .default = cs)) |>
   arrange(vid)

@@ -4,10 +4,12 @@
 \alias{vessel}
 \title{The new vessel stuff}
 \usage{
-vessel(con)
+vessel(con, fix = TRUE)
 }
 \arguments{
 \item{con}{oracle connection}
+
+\item{fix}{Fix typos, boolean (default TRUE)}
 }
 \value{
 a query

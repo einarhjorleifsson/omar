@@ -124,21 +124,45 @@ bi_scl <- function(con) {
 
 
 
-bi_mea <- function(con) {
+
+#' Biological measuremnts
+#'
+#' @param con oracle connection
+#' @param std create standardized/shortcut names (default is TRUE)
+#' @param trim trim return only key variables (default is TRUE)
+#'
+#' @return a query
+#' @export
+#'
+bi_measure <- function(con, std = TRUE, trim = TRUE) {
   q <- 
-    tbl_mar(con, "biota.measure") %>% 
-    dplyr::select(.id = sample_id,
-                  sid = species_no,
-                  type = measure_type,
-                  n = count,
-                  # rate, seems to be an empty field
-                  length,
-                  sex = sex_no,
-                  mat = sexual_maturity_id,
-                  wt = weight,
-                  gutted,
-                  stomach,
-                  liver,
-                  gonads = genital)
+    tbl_mar(con, "biota.measure") |> 
+    dplyr::select(sample_id:note,
+                  dplyr::everything())
+  if(std) {
+    q <- 
+      q |> 
+      dplyr::rename(.id = sample_id,
+                    sid = species_no,
+                    mtype = measure_type,
+                    n = count,
+                    sex = sex_no,
+                    maturity = maturity_id,
+                    wt = weight,
+                    gwt = gutted,
+                    gonads = genital)
+    if(trim) {
+      q <-
+        q |> 
+        dplyr::select(.id:measure_id)
+    }
+  } else {
+    if(trim) {
+      q <-
+        q |> 
+        dplyr::select(sample_id:measure_id)
+    }
+  }
   return(q)
 }
+  
