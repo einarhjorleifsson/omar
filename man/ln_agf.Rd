@@ -11,6 +11,9 @@ ln_agf(con, trim = TRUE)
 
 \item{trim}{only return essential variables (default)}
 }
+\value{
+a query
+}
 \description{
 Landings (gafl)
 }

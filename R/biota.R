@@ -29,26 +29,15 @@
 #'
 bi_len <- function(con, std = TRUE, trim = TRUE, weights = TRUE) {
   q <-
-    tbl_mar(con, "biota.lengd_skalad_v")
+    tbl_mar(con, "biota.lengd_skalad_v") |> 
+    dplyr::mutate(r_talid = nvl(r_talid, 1))
   
   if(std) {
     q <- 
-      q %>% 
-      dplyr::rename(.id = synis_id,
-                    sid = tegund_nr,
-                    length = lengd,
-                    sex = kyn_nr,
-                    mat = kynthroski_nr,
-                    age = aldur,
-                    n = fjoldi,
-                    rn = r_talid) %>% 
-      dplyr::mutate(rn = nvl(rn, 1)) # %>% 
-    # dplyr::left_join(sid_lwcoeffs(con),
-    #                  by = "sid") %>% 
-    # dplyr::mutate(a  = ifelse(is.na(a), 0.01, a),
-    #               b  = ifelse(is.na(b), 3.00, b),
-    #               wt = (a * length^b) / 1e3, .after = length) %>% 
-    # dplyr::select(-c(a, b))
+      q |> 
+      dplyr::rename(dplyr::any_of(vocabulary))
+      
+    
     if(trim) {
       q <-
         q %>% 
@@ -88,34 +77,36 @@ bi_lwcoeffs <- function(con) {
 #' 
 #' @param con oracle connection
 #' @param std create standardized/shortcut names (default is TRUE)
-#' @param trim trim return only key variables (default is TRUE). only operational
-#' if std is TRUE
 #'
 #' @return a tibble query
 #' @export
 #'
-bi_age <- function(con, std = TRUE, trim = TRUE) {
+bi_age <- function(con, std = TRUE) {
   
-  q <- tbl_mar(con, "biota.aldur_v")
+  q <- 
+    tbl_mar(con, "biota.aldur_v") |> 
+    dplyr::select(maeling_id,
+                  synis_id,
+                  tegund_nr,
+                  lengd,
+                  kyn_nr,
+                  kynthroski_nr,
+                  aldur, 
+                  fjoldi,
+                  kvarna_nr,
+                  thyngd,
+                  slaegt,
+                  magi,
+                  lifur,
+                  kynfaeri,
+                  hlutfall,
+                  dplyr::everything())
   
   if(std) {
     q <- 
       q %>% 
-      dplyr::select(.mid = maeling_id,
-                    .id = synis_id,
-                    sid = tegund_nr,
-                    length = lengd,
-                    sex = kyn_nr,
-                    mat = kynthroski_nr,
-                    age = aldur, 
-                    n = fjoldi,
-                    knr = kvarna_nr,
-                    wt = thyngd,
-                    gwt = slaegt,
-                    stomach = magi,
-                    liver = lifur,
-                    gonads = kynfaeri,
-                    rate = hlutfall)
+      dplyr::rename(dplyr::any_of(vocabulary))
+      
   }
   
   return(q)
@@ -133,21 +124,45 @@ bi_scl <- function(con) {
 
 
 
-bi_mea <- function(con) {
+
+#' Biological measuremnts
+#'
+#' @param con oracle connection
+#' @param std create standardized/shortcut names (default is TRUE)
+#' @param trim trim return only key variables (default is TRUE)
+#'
+#' @return a query
+#' @export
+#'
+bi_measure <- function(con, std = TRUE, trim = TRUE) {
   q <- 
-    tbl_mar(con, "biota.measure") %>% 
-    dplyr::select(.id = sample_id,
-                  sid = species_no,
-                  type = measure_type,
-                  n = count,
-                  # rate, seems to be an empty field
-                  length,
-                  sex = sex_no,
-                  mat = sexual_maturity_id,
-                  wt = weight,
-                  gutted,
-                  stomach,
-                  liver,
-                  gonads = genital)
+    tbl_mar(con, "biota.measure") |> 
+    dplyr::select(sample_id:note,
+                  dplyr::everything())
+  if(std) {
+    q <- 
+      q |> 
+      dplyr::rename(.id = sample_id,
+                    sid = species_no,
+                    mtype = measure_type,
+                    n = count,
+                    sex = sex_no,
+                    maturity = maturity_id,
+                    wt = weight,
+                    gwt = gutted,
+                    gonads = genital)
+    if(trim) {
+      q <-
+        q |> 
+        dplyr::select(.id:measure_id)
+    }
+  } else {
+    if(trim) {
+      q <-
+        q |> 
+        dplyr::select(sample_id:measure_id)
+    }
+  }
   return(q)
 }
+  

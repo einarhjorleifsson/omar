@@ -125,7 +125,7 @@ taggart <- function(con) {
   
   stodvar <-
     mar::les_stod(con) %>%
-    left_join(mar::les_syni(con), by = 'stod_id') %>% 
+    dplyr::left_join(mar::les_syni(con), by = 'stod_id') %>% 
     # dplyr::mutate(tLon = kastad_lengd,
     #        tLat =  kastad_breidd,
     #        tAr = to_number(to_char(dags, 'yyyy'))) %>%

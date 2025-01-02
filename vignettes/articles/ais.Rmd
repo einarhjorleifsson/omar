@@ -15,43 +15,112 @@ library(mapdeck)
 library(tidyverse)
 library(omar)
 con <- connect_mar()
+letters_only <- function(x) !grepl("[^A-Za-z]", x)
+numbers_only <- function(x) !grepl("\\D", x)
 ```
 
-## Case in point - Múlaberg
+## ...
 
 ```{r}
-omar::mmsi_vessel(con) %>% 
-  filter(vid == 1281) %>% 
-  pull(mmsi) ->
-  MMSI
-# slow, not indexed
-astd <- 
-  omar:::pam_trail(con) %>% 
-  filter(mmsi == MMSI) %>% 
-  collect(n = Inf)
-mar:::stk_mid_vid(con) %>% 
-  filter(vid == 1281) %>% 
-  pull(mid) ->
-  MID
-ais <- 
-  stk_trail(con) %>% 
-  filter(mid == MID) %>% 
-  collect(n = Inf)
-d <- 
-  bind_rows(ais %>% select(time, lon, lat, speed) %>% mutate(source = "stk"),
-            astd %>% select(time, lon, lat) %>% mutate(source = "ast")) %>% 
-  arrange(time) %>% 
-  st_as_sf(coords = c("lon", "lat"),
-           crs = 4326,
-           remove = FALSE)
-d %>% 
-  mutate(year = lubridate::year(time)) %>% 
-  filter(year == 2020) %>% 
-  filter(between(lon, -30, -10),
-         between(lat, 62, 69)) %>% 
-  mapdeck() %>% 
-  add_scatterplot(fill_colour = "source",
-                  radius = 100,
-                  legend = TRUE)
+vid <-
+  omar::vessel(con) |>
+  collect(n = Inf) |>
+  filter(!vid %in% c(9999)) |>
+  # ignore foreign vessels
+  # filter(!between(vid, 3700, 4999)) |>
+  # umdæmisnúmer never greater than 999 (could be wrong)
+  mutate(uno_c = case_when(uno > 0 ~ str_pad(uno, 3, pad = "0"),
+                           .default = NA),
+         uid = case_when(!is.na(uid) & !is.na(uno_c) ~ paste0(uid, uno_c),
+                         .default = NA)) |>
+  select(vid:uid, cs, mclass, imo, mmsi, length) |> 
+  # this should be fixed upstream - GULLBERG VE292
+  mutate(cs = case_when(vid ==  2730 ~ "TFCR",
+                        .default = cs)) |>
+  arrange(vid)
+
+# used on classification downstream
+vid_mmsi <-
+  vid |> 
+  select(vid, mmsi) |> 
+  drop_na() |> 
+  pull(mmsi)
+
+stk_summary <-
+  tbl(con, dbplyr::in_schema("STK", "TRAIL")) |>
+  mutate(YEAR = year(POSDATE)) |>
+  filter(YEAR >= 2000) |>
+  group_by(MOBILEID) |>
+  summarise(pings = n(),
+            n_years = n_distinct(YEAR),
+            t1_org = min(POSDATE, na.rm = TRUE),
+            t2_org = max(POSDATE, na.rm = TRUE),
+            #cv_lon = sd(POSLON, na.rm = TRUE) / mean(POSLON, na.rm = TRUE),
+            #cv_lat = sd(POSLAT, na.rm = TRUE) / mean(POSLAT, na.rm = TRUE),
+            .groups = "drop") |>
+  collect(n = Inf) |>
+  rename(mid = MOBILEID) |>
+  mutate(t1_org = as_date(t1_org),
+         t2_org = as_date(t2_org)) |>
+  arrange(mid) |> 
+  # 2023-04-25: Variables to be used as timefilter downstream
+  mutate(T1 = ymd("2001-01-01"),
+         T2 = ymd("2029-12-31"))
+
+fixed_stations <- 
+  c("Surtseyja", "Straumnes", "Steinanes", "Haganes_K", "Eyri_Kvi_", "Bakkafjar",
+    "Laugardal", "BorgfjE P", "Gemlufall", "Sjokvi", "Straumduf", "Eyrarhlid",
+    "Hvalnes", "Straumm?l", "V_Blafj P", "Isafj.dju", "Rey?arfjo",
+    "VidarfjAI", "KLIF AIS",  "VadlahAIS", "Hafell_AI", "TIND_AIS",  "Storhof?i",
+    "Helguv", "Laugarb.f", "Grimseyja", "G.skagi",   "Grindavik", "Hornafjar",
+    "Flateyjar", "Kogurdufl", "Blakkur.d", "Bakkafjor", "Hvalbakur", "SUGANDI_A",
+    "TJALDANES", "Sjokvi-4",  "Kvi-0 Hri", "Sjokvi-2", "Sjokvi-3", "Snaefj1",
+    "Snaefj2", "Lande", "Sjomsk", "TJALD.NES", "illvid_p", "BLAKKSNES", "V_Sfell B",
+    "HOF", "118084", "Illvi?rah", "Miðfegg P", "BASE11", "Borgarfj ",
+    "V_Hofsos", "V_Hofsos ", "Arnarfjor", "Trackw", "SUGANDAFJ",
+    "BORGARÍS", "BORGARIS", "BORGARIS0", "BORGARIS1",
+    "TEST", "SN-105717", "Hvannadal", "Tjaldanes", "Berufjor?", "ThverfAIS",
+    "Onundarfj", "Haukadals", "Hofdahusa", "Dyrafjor?", "Faskru?sf",
+    "Hvestudal", "Kvi_Skotu", "Fossfjor?", "Hringsdal",
+    "Kvi_Baeja", "Bolafj P", "Sigmundar", "Bjarg_Kvi", "Tjornes P",
+    "FLATEYRI_", "Faskra?sf", "AISNET_TF", "Hraunh P",
+    "Fri?rik A", "BorgfjE B", "Horgargru", "HVestudal", "Dufl_GRV_",
+    "KOLBEINSE", "Stokksn P", "Drangaj_P", "Rifssker_", "Kolmuli_K", "Vattarnes", "Hafranes_",
+    "Kvigindis")
+
+mob <-
+  tbl_mar(con, "stk.mobile") %>%
+  select(mid = mobileid,
+         loid = localid,
+         glid = globalid) |>
+  collect(n = Inf) |>
+  arrange(mid) |>
+  #full_join(stk_summary) |>
+  arrange(mid) |>
+  mutate(class = case_when(glid %in% fixed_stations ~ "fixed",
+                           loid %in% c("9998", "9999") ~ "fixed",
+                           # sometimes we have mmsi that are not for vessels
+                           nchar(glid) == 9 & numbers_only(glid) ~ "mmsi",
+                           .default = NA)) |> 
+  mutate(lid_what = case_when(as.integer(loid) %in% vid$vid ~ "vid",
+                              (nchar(loid) == 4 & str_starts(loid, "TF")) |
+                                loid %in% vid$cs[!is.na(vid$cs)] ~ "cs",
+                              loid %in% vid$uid[!is.na(vid$uid)] ~ "uid",
+                              .default = NA),
+         gid_what = case_when(as.integer(glid) %in% vid$vid ~ "vid",
+                              (nchar(glid) == 4 & str_starts(glid, "TF")) |
+                                glid %in% vid$cs[!is.na(vid$cs)] ~ "cs",
+                              glid %in% vid$uid[!is.na(vid$uid)] ~ "uid",
+                              glid %in% vid_mmsi ~ "mmsi",
+                              .default = NA),
+         link = case_when(!is.na(lid_what) & !is.na(gid_what) ~ paste0(lid_what, "-", gid_what),
+                          .default = NA_character_))
+
+stk_summary |> 
+  left_join(mob) |> 
+  arrange(-pings) |> 
+  filter(!class %in% c("fixed") & is.na(link)) |> 
+  slice(1:400) |> 
+  knitr::kable()
 ```
 

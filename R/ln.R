@@ -3,7 +3,7 @@
 #' @param con oracle connection
 #' @param trim only return essential variables (default)
 #'
-#' @return
+#' @return a query
 #' @export
 #'
 ln_agf <- function(con, trim = TRUE) {
