@@ -34,7 +34,7 @@ voc_channel <-
                  "sample_class", "eng_descr",
                  "synaflokkur",  "descr")
 
-<<<<<<< HEAD
+
 # biota ------------------------------------------------------------------------
 voc_biota <- 
   #              note order
@@ -68,10 +68,10 @@ voc_vessel <-
 # create data ------------------------------------------------------------------
 
 vocabulary <-
-  bind_rows(voc_channel,
-            voc_biota,
-            voc_vessel) |> 
-  distinct()
+  dplyr::bind_rows(voc_channel,
+                   voc_biota,
+                   voc_vessel) |> 
+  dplyr::distinct()
 
 vocabulary <- 
   stats::setNames(object = vocabulary$mar, 
