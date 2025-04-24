@@ -1,6 +1,48 @@
 # The new vessel schema
 #  2024-02-12 Try to emulate what is now in vessel_vessels
 
+#' Main vessel table
+#'
+#' @param con Database connection
+#' @param trim Boolean (default TRUE), returns opinionated variables
+#'
+#' @return a sql-query
+#'
+vessel_vessel <- function(con, trim = TRUE) {
+  
+  q <- 
+    tbl_mar(con, "vessel.vessel") |> 
+    dplyr::rename(vid = registration_no,
+                  vessel = name,
+                  mclass = usage_category_no,   # mclass
+                  imo = imo_no,
+                  T1 = initial_registration_date,
+                  .vid = vessel_id)
+  if(trim) {
+    
+    q <- 
+      q |> 
+      dplyr::select(vid, vessel, mclass, imo, power_kw, T1, .vid)
+    
+  } else {
+    q <- 
+      q |> 
+      dplyr::select(vid, vessel, mclass, imo, power_kw, T1, .vid, dplyr::everything())
+  }
+  
+  return(q)
+  
+}
+
+# mar_tables(con, "vessel") |> collect() -> vtbl
+# vessel_mmsi <- function(con, trim = TRUE, source = "einar") {
+#   if(source == "einar") {
+#     tbl_mar(con, "ops$einarhj.MMSI_ICELANDIC_REGISTRY")
+#   }
+#   if(source == "vessel") {
+#     q <- tbl_mar(con, "vessel.vessel_mmsi")
+#   }
+# }
 
 #' The new vessel stuff
 #'
@@ -9,16 +51,10 @@
 #'
 #' @return a query
 #' @export
-vessel <- function(con, fix = TRUE) {
+vessel <- function(con, trim = TRUE, fix = TRUE) {
   
   q <-
-    tbl_mar(con, "vessel.vessel") |>
-    dplyr::select(vid = registration_no,
-                  vessel = name,
-                  mclass = usage_category_no,   # mclass
-                  imo = imo_no,
-                  power_kw,
-                  .vid = vessel_id) |> 
+    vessel_vessel(con, trim = trim) |> 
     dplyr::left_join(mmsi_icelandic_registry(con) |> 
                        dplyr::filter(!is.na(vid)) |> 
                        dplyr::select(vid, mmsi),
@@ -39,7 +75,8 @@ vessel <- function(con, fix = TRUE) {
                   gt,
                   width_reg,
                   depth_reg,
-                  port)
+                  port,
+                  T1)
   
   if(fix) {
     q <- 
