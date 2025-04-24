@@ -44,37 +44,19 @@ lb_base0 <- function(con) {
 #' Logbook base (stofn)
 #' 
 #' @param con oracle connection
-#' @param correct_gear a boolean (default FALSE) checks for lookup-table for
-#' gear correction (adds variable "gidc" to the tibble)
 #'
 #' @return sql query and data
 #' @export
 #'
-lb_base <- function(con, correct_gear = FALSE) {
+lb_base <- function(con) {
   
   q <-
     lb_base0(con)
-  
-  if(correct_gear) {
-    q <- 
-      q %>% 
-      dplyr::left_join(gid_correction(con) %>% 
-                         dplyr::select(visir, gidc),
-                       by = "visir") %>% 
-      dplyr::rename(gid_old = gid,
-                    gid = gidc) %>% 
-      # if gear correction not yet made in the oracle lookup table
-      dplyr::mutate(gid = ifelse(is.na(gid), gid_old, gid)) %>% 
-      dplyr::left_join(gid_orri_plus(con) %>%
-                         dplyr::select(gid, gid2),
-                       by = "gid")
-  } else {
-    q <- 
-      q %>% 
-      dplyr::left_join(gid_orri_plus(con) %>%
-                         dplyr::select(gid, gid2),
-                       by = "gid")
-  }
+  q <- 
+    q %>% 
+    dplyr::left_join(gid_orri_plus(con) %>%
+                       dplyr::select(gid, gid2),
+                     by = "gid")
   
   q <- 
     q %>% 
@@ -89,17 +71,15 @@ lb_base <- function(con, correct_gear = FALSE) {
 #' Logbook mobile (active) gear
 #'
 #' @param con oracle connection
-#' @param correct_gear a boolean (default TRUE) checks for lookup-table for
-#' gear correction (adds variable "gidc" to the tibble)
 #' @param trim trim variables returned (default TRUE)
 #'
 #' @return a sql tibble
 #' @export
 
-lb_mobile <- function(con, correct_gear = TRUE, trim = TRUE) {
+lb_mobile <- function(con, trim = TRUE) {
   
   q <- 
-    lb_base(con, correct_gear = correct_gear) %>% 
+    lb_base(con) %>% 
     dplyr::inner_join(tbl_mar(con, "afli.toga"),
                       by = "visir")
   
@@ -151,17 +131,15 @@ lb_mobile <- function(con, correct_gear = TRUE, trim = TRUE) {
 #' Logbook static (passsive) gear
 #'
 #' @param con Oracle connection
-#' @param correct_gear a boolean (default TRUE) checks for lookup-table for
-#' gear correction (adds variable "gidc" to the tibble)
 #' @param trim trim variables returned (default TRUE)
 #' 
 #' @return A sql tibble
 #' @export
 #' 
-lb_static <- function(con, correct_gear = TRUE, trim = TRUE) {
+lb_static <- function(con, trim = TRUE) {
   
   q <- 
-    lb_base(con, correct_gear = correct_gear) %>% 
+    lb_base(con) %>% 
     dplyr::inner_join(tbl_mar(con, "afli.lineha"),
                       by = "visir")
   
@@ -206,17 +184,15 @@ lb_static <- function(con, correct_gear = TRUE, trim = TRUE) {
 #' Logbook traps
 #'
 #' @param con Oracle connection
-#' @param correct_gear a boolean (default TRUE) checks for lookup-table for
-#' gear correction (adds variable "gidc" to the tibble)
 #' @param trim trim variables returned (default TRUE)
 #' 
 #' @return A sql tibble
 #' @export
 #' 
-lb_trap <- function(con, correct_gear = TRUE, trim = TRUE) {
+lb_trap <- function(con, trim = TRUE) {
   
   q <- 
-    lb_base(con, correct_gear = correct_gear) %>% 
+    lb_base(con) %>% 
     dplyr::inner_join(tbl_mar(con, "afli.gildra"),
                       by = "visir")
   
@@ -243,17 +219,15 @@ lb_trap <- function(con, correct_gear = TRUE, trim = TRUE) {
 #' Logbook pelagic seines
 #'
 #' @param con Oracle connection
-#' @param correct_gear a boolean (default TRUE) checks for lookup-table for
-#' gear correction (adds variable "gidc" to the tibble)
 #' @param trim trim variables returned (default TRUE)
 #' 
 #' @return A sql tibble
 #' @export
 #' 
-lb_seine <- function(con, correct_gear = TRUE, trim = TRUE) {
+lb_seine <- function(con, trim = TRUE) {
   
   q <- 
-    lb_base(con, correct_gear = correct_gear) %>% 
+    lb_base(con) %>% 
     dplyr::inner_join(tbl_mar(con, "afli.hringn"),
                       by = "visir")
   
@@ -331,4 +305,3 @@ lb_trail <- function(con, std = TRUE, trim = TRUE) {
   }
   return(q)
 }
-  
