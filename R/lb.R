@@ -95,7 +95,9 @@ lb_mobile <- function(con, trim = TRUE) {
                                                  # for seine just use the setting
                                                  gid2 %in% c(5, 17) ~ "setting",
                                                  TRUE ~ NA_character_)) %>%
-    dplyr::mutate(on.bottom = lpad(on.bottom, 4, "0")) %>%
+    dplyr::mutate(on.bottom = dplyr::case_when(on.bottom < 0 ~ NA,
+                                               .default = on.bottom),
+                  on.bottom = lpad(on.bottom, 4, "0")) %>%
     # vedags + (substr(lpad(ibotni,4,'0'),1,2)*60+substr(lpad(ibotni,4,'0'),3,2))/24/60 t1
     # Oracle time is in days
     dplyr::mutate(t1 = date + (substr(on.bottom, 1, 2) * 60 + substr(on.bottom, 3, 4)) / (24 * 60),
