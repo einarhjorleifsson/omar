@@ -2,7 +2,7 @@
 % Please edit documentation in R/biota.R
 \name{bi_age}
 \alias{bi_age}
-\title{by_age}
+\title{bi_age}
 \usage{
 bi_age(con, std = TRUE)
 }

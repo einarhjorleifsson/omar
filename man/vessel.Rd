@@ -4,7 +4,7 @@
 \alias{vessel}
 \title{The new vessel stuff}
 \usage{
-vessel(con, fix = TRUE)
+vessel(con, trim = TRUE, fix = TRUE)
 }
 \arguments{
 \item{con}{oracle connection}

@@ -4,13 +4,10 @@
 \alias{lb_mobile}
 \title{Logbook mobile (active) gear}
 \usage{
-lb_mobile(con, correct_gear = TRUE, trim = TRUE)
+lb_mobile(con, trim = TRUE)
 }
 \arguments{
 \item{con}{oracle connection}
-
-\item{correct_gear}{a boolean (default TRUE) checks for lookup-table for
-gear correction (adds variable "gidc" to the tibble)}
 
 \item{trim}{trim variables returned (default TRUE)}
 }

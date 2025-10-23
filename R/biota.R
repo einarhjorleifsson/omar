@@ -71,7 +71,7 @@ bi_lwcoeffs <- function(con) {
     dplyr::rename(sid = species)
 }
 
-#' by_age
+#' bi_age
 #'
 #' Reads biota.aldur_v
 #' 
@@ -112,14 +112,24 @@ bi_age <- function(con, std = TRUE) {
   return(q)
 }
 
-
-bi_scl <- function(con) {
-  tbl_mar(con, "biota.skalar_v") %>% 
+#' bi_n
+#'
+#' Reads biota.skalar_v
+#' 
+#' @param con oracle connection
+#' @param std create standardized/shortcut names (default is TRUE) - not active.
+#'
+#' @return a tibble query
+#' @export
+#'
+bi_n <- function(con, std = TRUE) {
+  tbl_mar(con, "biota.skalar_v") |> 
     dplyr::select(.id = synis_id,
                   sid = tegund_nr,
-                  ot = kvarnadir,
-                  le = maeldir,
-                  n = taldir)
+                  n_age = kvarnadir,
+                  n_length = maeldir,
+                  n_count = taldir) |> 
+    dplyr::mutate(n = n_length + n_count)
 }
 
 
@@ -166,3 +176,4 @@ bi_measure <- function(con, std = TRUE, trim = TRUE) {
   return(q)
 }
   
+

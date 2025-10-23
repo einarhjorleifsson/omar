@@ -4,13 +4,10 @@
 \alias{lb_trap}
 \title{Logbook traps}
 \usage{
-lb_trap(con, correct_gear = TRUE, trim = TRUE)
+lb_trap(con, trim = TRUE)
 }
 \arguments{
 \item{con}{Oracle connection}
-
-\item{correct_gear}{a boolean (default TRUE) checks for lookup-table for
-gear correction (adds variable "gidc" to the tibble)}
 
 \item{trim}{trim variables returned (default TRUE)}
 }
