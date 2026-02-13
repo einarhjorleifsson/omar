@@ -9,6 +9,8 @@ vessel(con, trim = TRUE, fix = TRUE)
 \arguments{
 \item{con}{oracle connection}
 
+\item{trim}{Boolean (default TRUE)}
+
 \item{fix}{Fix typos, boolean (default TRUE)}
 }
 \value{

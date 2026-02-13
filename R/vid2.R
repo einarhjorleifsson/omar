@@ -47,6 +47,7 @@ vessel_vessel <- function(con, trim = TRUE) {
 #' The new vessel stuff
 #'
 #' @param con oracle connection
+#' @param trim Boolean (default TRUE)
 #' @param fix Fix typos, boolean (default TRUE)
 #'
 #' @return a query

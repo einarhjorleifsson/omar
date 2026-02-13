@@ -1,6 +1,6 @@
 Package: omar
 Title: Me connecting to mar
-Version: 2025.10.23
+Version: 2026.02.13
 Authors@R: 
     person(given = "Einar",
            family = "Hjorleifsson",

@@ -52,6 +52,10 @@ utils::globalVariables(
     "call_sign", "child", "column_name", "count", "home_port", "imo_no", "max_length",
     "power_kw", "region_acronym", "region_no", "registration_no", "usage_category_no",
     "vessel_id", "width",
+    "T1", "analysis_done", "area_m2", "cruise_id", "depth_m", "file_path", "image_timestamp",
+    "initial_registration_date", "maturity_id", "measure_id", "n_count", "n_length",
+    "note", "project_id", "scale_marker_cm", "scale_marker_pixels", "source_video_id",
+    "station_number", "station_timestamp", "track_source_id", "track_timestamp",
     "."))
 
 
